@@ -8,8 +8,7 @@ RBYTECODE_ENV=R_COMPILE_PKGS=1 R_ENABLE_JIT=2
 
 TERR_CMD=$(TERR_HOME)/bin/TERR
 
-RBASE_HARNESS=${LEVEL}/utility/rbase_harness.R
-RBYTECODE_HARNESS=${LEVEL}/utility/rbytecode_harness.R
+R_HARNESS=${LEVEL}/utility/r_harness.R
 ifndef REP
 	REP=1
 endif
@@ -35,35 +34,35 @@ bytecodeperf: ${PROG}.bytecodeperf
 terrperf: ${PROG}.terrperf
 
 %.base: %.R
-	${RBASE_ENV} ${R_CMD} ${R_FLAG} ${RBASE_HARNESS} $< ${REP} ${PARA}
+	${RBASE_ENV} ${R_CMD} ${R_FLAG} ${R_HARNESS} FALSE ${REP} $< ${PARA}
 	
 %.bytecode: %.R
-	${RBYTECODE_ENV} ${R_CMD} ${R_FLAG} ${RBYTECODE_HARNESS} $< ${REP} ${PARA}
+	${RBYTECODE_ENV} ${R_CMD} ${R_FLAG} ${R_HARNESS} TRUE ${REP} $< ${PARA}
 
 %.terr: %.R
-	${TERR_CMD} -f ${RBASE_HARNESS} --args $< ${REP} ${PARA}
+	${TERR_CMD} -f ${R_HARNESS} --args FALSE ${REP} $< ${PARA}
 
 %.baseperf: %.R
 	@echo ${PERF_WARM_REP} > ${PERF_TMP}
-	${RBASE_ENV} ${PERF_CMD} ${R_CMD} ${R_FLAG} ${RBASE_HARNESS} $< ${PERF_WARM_REP} ${PARA}
+	${RBASE_ENV} ${PERF_CMD} ${R_CMD} ${R_FLAG} ${R_HARNESS} FALSE ${PERF_WARM_REP} $< ${PARA}
 	@echo ${PERF_TOTAL_REP} >> ${PERF_TMP}
-	${RBASE_ENV} ${PERF_CMD} ${R_CMD} ${R_FLAG} ${RBASE_HARNESS} $< ${PERF_TOTAL_REP} ${PARA}
+	${RBASE_ENV} ${PERF_CMD} ${R_CMD} ${R_FLAG} ${R_HARNESS} FALSE ${PERF_WARM_REP} $< ${PARA}
 	${PERF_REPORT_CMD} < $(PERF_TMP)
 	@rm -f  $(PERF_TMP)
 	
 %.bytecodeperf: %.R
 	@echo ${PERF_WARM_REP} > ${PERF_TMP}
-	${RBYTECODE_ENV} ${PERF_CMD} ${R_CMD} ${R_FLAG} ${RBYTECODE_HARNESS} $< ${PERF_WARM_REP} ${PARA}
+	${RBYTECODE_ENV} ${PERF_CMD} ${R_CMD} ${R_FLAG} ${R_HARNESS} $< ${PERF_WARM_REP} ${PARA}
 	@echo ${PERF_TOTAL_REP} >> ${PERF_TMP}
-	${RBYTECODE_ENV} ${PERF_CMD} ${R_CMD} ${R_FLAG} ${RBYTECODE_HARNESS} $< ${PERF_TOTAL_REP} ${PARA}
+	${RBYTECODE_ENV} ${PERF_CMD} ${R_CMD} ${R_FLAG} ${R_HARNESS} $< ${PERF_TOTAL_REP} ${PARA}
 	${PERF_REPORT_CMD} < $(PERF_TMP)
 	@rm -f  $(PERF_TMP)
 
 	
 %.terrperf: %.R
 	@echo ${PERF_WARM_REP} > ${PERF_TMP}
-	${PERF_CMD} ${TERR_CMD} -f ${RBASE_HARNESS} --args $< ${PERF_WARM_REP} ${PARA}
+	${PERF_CMD} ${TERR_CMD} -f ${R_HARNESS} --args FALSE ${PERF_WARM_REP} $< ${PARA}
 	@echo ${PERF_TOTAL_REP} >> ${PERF_TMP}
-	${PERF_CMD} ${TERR_CMD} -f ${RBASE_HARNESS} --args $< ${PERF_TOTAL_REP} ${PARA}
+	${PERF_CMD} ${TERR_CMD} -f ${R_HARNESS} --args FALSE ${PERF_TOTAL_REP} $< ${PARA}
 	${PERF_REPORT_CMD} < $(PERF_TMP)
 	@rm -f  $(PERF_TMP)
