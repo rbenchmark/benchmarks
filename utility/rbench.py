@@ -9,7 +9,7 @@ usage: rbench.py [-h] [--meter {time,perf}]
 ...
 '''
 
-import sys, os
+import sys, os, platform
 import time
 import argparse
 import ConfigParser
@@ -27,8 +27,12 @@ def parse_cfg(utility_dir):
     for rvm in rvms:
         rhome = config.get(rvm, 'HOME')
         if rhome != '':
-            config.set(rvm, 'CMD',  rhome + '/' + config.get(rvm, 'CMD'))
-        config.set(rvm, 'HARNESS', utility_dir+'/'+config.get(rvm, 'HARNESS'))        
+            if platform.system() == 'Windows':
+                config.set(rvm, 'CMD',  '"' + rhome + '\\' + config.get(rvm, 'CMD') + '"')
+                config.set(rvm, 'HARNESS', utility_dir+'\\'+config.get(rvm, 'HARNESS'))  
+            else:
+                config.set(rvm, 'CMD',  rhome + '/' + config.get(rvm, 'CMD'))
+                config.set(rvm, 'HARNESS', utility_dir+'/'+config.get(rvm, 'HARNESS'))        
     
     warmup_rep = config.getint('GENERAL', 'WARMUP_REP')
     bench_rep = config.getint('GENERAL', 'BENCH_REP')
