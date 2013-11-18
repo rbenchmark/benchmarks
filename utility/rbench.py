@@ -1,13 +1,12 @@
 #!/usr/bin/python
 
-USAGE = '''
-rbench v0.1
-
-Run benchmark of a R rbenchmark application
-
-usage:
-
-    $ rbench [rbench flags ...] yourBench.R your_arg1 your_arg2 ...
+'''
+rbench.py -h
+usage: rbench.py [-h] [--meter {time,perf}]
+                 [--rvm {R,R-bytecode,rbase2.4,...}]
+                 [--warmup_rep WARMUP_REP] [--bench_rep BENCH_REP]
+                 source [args [args ...]]
+...
 '''
 
 import sys, os

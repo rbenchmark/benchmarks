@@ -102,7 +102,10 @@ b <- fft(a)
 
 ### Collections of Benchmarks of R
 - Scalar benchmark: A few simple micro benchmarks, such as fib, forloop, primes, etc..
+  + Category: Type I
 - shootout: R version of http://benchmarksgame.alioth.debian.org/. Different groups have different implementations
   + fastr version: ported from https://github.com/allr/
   + orbit version: ported from ORBIT (Optimized R Byte-code InterpreTer) project
-- ATT benchmark(R-benchmark-25): from http://r.research.att.com/benchmarks/R-benchmark-25.R
+    + Category: Type I
+- R-benchmark-25(ATT benchmark): from http://r.research.att.com/benchmarks/R-benchmark-25.R
+  + Category: Type I and III

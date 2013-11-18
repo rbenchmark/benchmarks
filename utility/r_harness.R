@@ -29,11 +29,11 @@ if(enableBC) {
 if(harness_argc > 3) {
     bench_args <- harness_args[4:harness_argc]
 } else {
-    bench_args <- NULL
+    bench_args <- character(0)
 }
 
 if(exists('setup')) {
-    if(is.null(bench_args)) {
+    if(length(bench_args) == 0) {
         bench_args <- setup()        
     } else {
         bench_args <- setup(bench_args)
@@ -41,7 +41,7 @@ if(exists('setup')) {
 } 
 
 # finally do benchmark
-if(is.null(bench_args)) {
+if(length(bench_args) == 0) {
     for(bench_i in 1:bench_reps) { run() }
 } else {
     for(bench_i in 1:bench_reps) { run(bench_args) }    
