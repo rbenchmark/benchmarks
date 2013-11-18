@@ -40,6 +40,8 @@ usage: rbench.py [-h] [--meter {time,perf}]
 ...
 ```
 
+Note: on Windows platform, please use "python rbench.py -h"
+
 Do a simple benchmark
 ```bash
 $ cd examples
@@ -60,7 +62,7 @@ $ cd examples
 $ ../utility/rbench.py --meter perf --rvm R hello_rbenchmark.R 1000
 ```
 
-Then it will use Linux perf (only in Linux Platform) for the data measuring, and choose the R (without byte-code compiler) as the VM for benchmarking.
+Then it will use Linux perf (only on Linux Platform) for the data measuring, and choose the R (without byte-code compiler) as the VM for benchmarking.
 
 Please refer [Running Benchmark](docs/running_benchmark.md) for additional controls of running a benchmark
 
