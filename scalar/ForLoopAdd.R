@@ -1,8 +1,14 @@
 # TODO: Add comment
 #
-# Author: Haichuan
+# Author: Haichuan Wang(hwang154@illinois.edu)
 ###############################################################################
 
+
+setup <- function(args='10000000') {
+    n<-as.integer(args[1])
+    if(is.na(n)){ n <- 10000000 }
+    return(n)
+}
 
 run <-function(n=10000000) {
   r <- 0;
@@ -13,11 +19,6 @@ run <-function(n=10000000) {
 };
 
 if (!exists('harness_argc')) {
-#    input <- commandArgs(TRUE)
-#    if(length(input) > 0) {
-#        n <- as.integer(input[1])
-#        run(n)
-#    } else {
-        run()
-#    }
+    n <- setup(commandArgs(TRUE))
+    run(n)
 }

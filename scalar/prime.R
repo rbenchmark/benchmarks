@@ -1,10 +1,17 @@
 # TODO: Add comment
 # 
-# Author: Administrator
+# Author: Haichuan Wang(hwang154@illinois.edu)
 ###############################################################################
+
+setup <- function(args='100000') {
+    n<-as.integer(args[1])
+    if(is.na(n)){ n <- 100000 }
+    return(n)
+}
 
 #Simple trivial test of n
 #no any optimizaiton, just test the worst loop case
+
 run <- function(n=100000) {
 	if(n<2) { n <- 2;}
 	
@@ -27,5 +34,7 @@ run <- function(n=100000) {
 }
 
 
-n<-1000;
-run(n);
+if (!exists('harness_argc')) {
+    n <- setup(commandArgs(TRUE))
+    run(n)
+}

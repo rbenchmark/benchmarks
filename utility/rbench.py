@@ -26,22 +26,26 @@ def parse_cfg(utility_dir):
     
     #then change the harness file's location here
     for rvm in rvms:
-        config.set(rvm, 'CMD', config.get(rvm, 'HOME') + '/' + config.get(rvm, 'CMD'))
+        rhome = config.get(rvm, 'HOME')
+        if rhome != '':
+            config.set(rvm, 'CMD',  rhome + '/' + config.get(rvm, 'CMD'))
         config.set(rvm, 'HARNESS', utility_dir+'/'+config.get(rvm, 'HARNESS'))        
     
     return config, rvms
 
 
 def parse_args(rvms):
-    parser = argparse.ArgumentParser(description='Run R benchmarks')
-    parser.add_argument('--meter', choices=['python','perf'], default='python',
-                         help='The meter used to measure the runtime')
+    parser = argparse.ArgumentParser(description='Run a R benchmark script with a selected R VM')
+    parser.add_argument('--meter', choices=['time','perf'], default='time',
+                         help='''Meter used to measure the benchmark.
+                         time: only measure the time in ms.
+                         perf: Linux perf, only available at Linux platform''')
     parser.add_argument('--rvm', choices=rvms, default=rvms[1],
-                        help='The vm used for the benchmarking')
+                        help='R VM used for the benchmark. Defined in rbench.cfg. Default is '+rvms[1])
     parser.add_argument('source', nargs=1,
-                        help='The R source file for benchmarking')
+                        help='R source file for the benchmark')
     parser.add_argument('args', nargs='*',
-                        help='arguments for the source file')
+                        help='arguments used by the source file')
     args = parser.parse_args()
     return args
 
@@ -69,7 +73,9 @@ def run_bench(config, rvm, meter, source, rargs):
         bench_cmd = ' '.join([env, rcmd, rcmd_args, harness, harness_args,
                                bench_rep, source, rargs])
     
-    print warmup_cmd
+    #print warmup_cmd
+    warmup_n = int(warmup_rep)
+    print '[rbench]%s %s - Warmup run() %d times' % (source, rargs, warmup_n) 
     if meter == 'perf':
         with open(perf_tmp, 'w') as f:
             f.write(warmup_rep+'\n')
@@ -79,7 +85,9 @@ def run_bench(config, rvm, meter, source, rargs):
     end_t = time.time()
     warmup_t = end_t - start_t#to ms
     
-    print bench_cmd
+    #print bench_cmd
+    bench_n = int(bench_rep)
+    print '[rbench]%s %s - Bench run() %d times' % (source, rargs, bench_n) 
     if meter == 'perf':
         with open(perf_tmp, 'a') as f:
             f.write(bench_rep+'\n')
@@ -96,11 +104,12 @@ def run_bench(config, rvm, meter, source, rargs):
     else:
         metrics = {}
         
-    metrics['time'] = (bench_t -warmup_t) * 1000 / (int(bench_rep) - int(warmup_rep))
+    metrics['time'] = (bench_t -warmup_t) * 1000 / (bench_n - warmup_n)
     
     return metrics
 
-def report(metrics):
+def report(metrics, source, rargs):
+    print '[rbench]%s %s - Metrics for one execution of run()' % (source, rargs) 
     keys = metrics.keys()
     keys.sort()
     for key in keys:
@@ -115,7 +124,7 @@ def main():
     
     #print cwd_dir
     #finally print the metrics
-    report(metrics)
+    report(metrics, args.source[0], ' '.join(args.args))
 
 
 if __name__ == "__main__":

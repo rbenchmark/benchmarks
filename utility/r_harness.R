@@ -32,11 +32,11 @@ if(harness_argc > 3) {
     bench_args <- NULL
 }
 
-if(exists('warmup')) {
+if(exists('setup')) {
     if(is.null(bench_args)) {
-        bench_args <- warmup()        
+        bench_args <- setup()        
     } else {
-        bench_args <- warmup(bench_args)
+        bench_args <- setup(bench_args)
     }
 } 
 

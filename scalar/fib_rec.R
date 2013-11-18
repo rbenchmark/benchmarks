@@ -3,6 +3,12 @@
 # Author: Administrator
 ###############################################################################
 
+setup <- function(args='30') {
+    n<-as.integer(args[1])
+    if(is.na(n)){ n <- 30 }
+    return(n)
+}
+
 
 run <- function(n=30)
 {
@@ -10,10 +16,7 @@ run <- function(n=30)
 	else {run(n - 1) + run(n - 2);}
 }
 
-#Default Driver
-n<-30;
-#args <- commandArgs(TRUE);
-#if(length(args) > 0){
-#	n <- as.integer(args[1]);
-#}
-run(n);
+if (!exists('harness_argc')) {
+    n <- setup(commandArgs(TRUE))
+    run(n)
+}

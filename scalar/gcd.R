@@ -1,17 +1,13 @@
 # TODO: Add comment
 # 
-# Author: Administrator
+# Author: Haichuan Wang(hwang154@illinois.edu)
 ###############################################################################
 
 
-run2 <- function(m, n)
-{
-	while(n!=0) {
-		t=m; 
-		m=n;
-		n=t %% n;
-	}
-	m;
+setup <- function(args='100000') {
+    n<-as.integer(args[1])
+    if(is.na(n)){ n <- 100000 }
+    return(n)
 }
 
 run <- function(l=100000) {
@@ -27,15 +23,10 @@ run <- function(l=100000) {
 			n=t %% n;
 		}
 	}
-	l
+	print(l)
 }
 
-#Default Driver
-#m<-123456789;
-#n<-234736437;
-#args <- commandArgs(TRUE);
-#if(length(args) > 0){
-#	m <- as.integer(args[1]);
-#	n <- as.integer(args[2]);
-#}
-#run2(m,n);
+if (!exists('harness_argc')) {
+    n <- setup(commandArgs(TRUE))
+    run(n)
+}

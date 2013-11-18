@@ -5,6 +5,12 @@
 
 # I define GCD and LCM inside the run function
 
+setup <- function(args='100') {
+    n<-as.integer(args[1])
+    if(is.na(n)){ n <- 100 }
+    return(n)
+}
+
 run <- function(repcount=100) {
 	gcd = function(m, n) {
 		while (n != 0){
@@ -44,4 +50,7 @@ run <- function(repcount=100) {
 	print(r);
 }
 
-run()
+if (!exists('harness_argc')) {
+    n <- setup(commandArgs(TRUE))
+    run(n)
+}

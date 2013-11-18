@@ -1,6 +1,6 @@
 
-# warmup() function is optional.
-warmup <- function(cmdline_args=character(0)){
+# setup() function is optional.
+setup <- function(cmdline_args=character(0)){
     print("Executing hello_rbenchmark warmup() with input:")
     print(cmdline_args)
     return(cmdline_args)

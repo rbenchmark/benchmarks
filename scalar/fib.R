@@ -1,8 +1,13 @@
 # TODO: Add comment
 # 
-# Author: Administrator
+# Author: Haichuan Wang(hwang154@illinois.edu)
 ###############################################################################
 
+setup <- function(args='1000') {
+    n<-as.integer(args[1])
+    if(is.na(n)){ n <- 1000 }
+    return(n)
+}
 
 run <- function(rep=1000)
 {
@@ -12,14 +17,12 @@ run <- function(rep=1000)
 		b <- 1
 		for(j in 1:n) {t <- a; a <- b; b <- b+t}
 	}
-	b
+	print(b)
 }
 
 #Default Driver
 
-#args <- commandArgs(TRUE);
-#if(length(args) > 0){
-#	n <- as.integer(args[1]);
-#}
-
-run()
+if (!exists('harness_argc')) {
+    n <- setup(commandArgs(TRUE))
+    run(n)
+}
