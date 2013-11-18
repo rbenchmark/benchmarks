@@ -119,3 +119,6 @@ ARGS=-f
 HARNESS=r_harness.R
 HARNESS_ARGS=--args FALSE
 ```
+
+## (Deprecated) Makefile based driver
+There is a makefile based driver for the benchmarking, include common.mk and Makefile in each directory. It is deprecated. 
