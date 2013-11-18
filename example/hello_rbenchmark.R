@@ -14,6 +14,6 @@ run <- function (input) {
 
 if (!exists('harness_argc')) {
     input = commandArgs(TRUE)
-    # input = warmup(input) # optional
+    # input = setup(input) # optional
     run(input)
 }
