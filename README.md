@@ -35,6 +35,7 @@ The driver is [rbench.py](utility/rbench.py) under utility directory. You can us
 $ rbench.py -h
 usage: rbench.py [-h] [--meter {time,perf}]
                  [--rvm {R,R-bytecode,rbase2.4,...}]
+                 [--warmup_rep WARMUP_REP] [--bench_rep BENCH_REP]
                  source [args [args ...]]
 ...
 ```
@@ -48,10 +49,10 @@ $ ../utility/rbench.py hello_rbenchmark.R
 It will use the default R VM (R-bytecode) and the default meter to benchmark the application. 
 
 The basic benchmark method has two phases
-- warumup: run run() 2 times
-- benchmark: run run() 5 times
+- pure warmup: run run() 2 times
+- warmup + benchmark: run run() 2 + 5 times
 
-Then it reports the average value for the 5 benchmark iterations.
+Then the post processing will diff the two phases, and reports the average value for the 5 benchmark iterations.
 
 You can use command line to do more controls
 ```bash

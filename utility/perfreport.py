@@ -3,22 +3,29 @@
 import sys,string
 
 
-
-def process_perf_lines(lines):
-    warm_rep=int(lines[0])
+def parse_perf_lines(lines):
     metrics={}
-    #warmup
-    for line in lines[3:13]:
+    for line in lines:
         values=string.split(line,',')
         metrics[values[1]]=float(values[0])
-        
-    bench_rep=int(lines[13])
-    #all loops
-    for line in lines[16:26]:
-        values=string.split(line,',')
-        metrics[values[1]]=(float(values[0]) - metrics[values[1]]) / (bench_rep - warm_rep)
-    
     return metrics
+
+
+def process_perf_lines(lines):
+    warmup_rep=int(lines[0])
+    
+    if(warmup_rep >0):
+        warmup_metrics = parse_perf_lines(lines[3:13])
+        bench_rep = int(lines[13])
+        bench_metrics = parse_perf_lines(lines[16:26])
+        #do the diff
+        for key in bench_metrics.keys():
+            bench_metrics[key] = (bench_metrics[key] - warmup_metrics[key]) / (bench_rep - warmup_rep)
+    else:
+        bench_rep = int(lines[1])
+        bench_metrics = parse_perf_lines(lines[4:14])
+        
+    return bench_metrics
 
 if __name__ == "__main__":
     #lines = [line.strip() for line in open('_perf.tmp')]

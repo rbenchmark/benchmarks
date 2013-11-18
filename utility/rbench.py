@@ -31,28 +31,47 @@ def parse_cfg(utility_dir):
             config.set(rvm, 'CMD',  rhome + '/' + config.get(rvm, 'CMD'))
         config.set(rvm, 'HARNESS', utility_dir+'/'+config.get(rvm, 'HARNESS'))        
     
-    return config, rvms
+    warmup_rep = config.getint('GENERAL', 'WARMUP_REP')
+    bench_rep = config.getint('GENERAL', 'BENCH_REP')
+    
+    return config, rvms, warmup_rep, bench_rep
 
 
-def parse_args(rvms):
-    parser = argparse.ArgumentParser(description='Run a R benchmark script with a selected R VM')
+def parse_args(rvms, warmup_rep, bench_rep):
+    parser = argparse.ArgumentParser(description='''Run R benchmark script with a selected R VM.
+                                                    Please refer https://github.com/rbenchmark/benchmarks for detail user manual''')
     parser.add_argument('--meter', choices=['time','perf'], default='time',
                          help='''Meter used to measure the benchmark.
                          time: only measure the time in ms.
                          perf: Linux perf, only available at Linux platform''')
     parser.add_argument('--rvm', choices=rvms, default=rvms[1],
                         help='R VM used for the benchmark. Defined in rbench.cfg. Default is '+rvms[1])
+    parser.add_argument('--warmup_rep', default=warmup_rep, type=int,
+                        help='The number of repetition to execute run() in warmup. Default is %d' % warmup_rep)
+    parser.add_argument('--bench_rep', default=bench_rep, type=int,
+                        help='The number of repetition to execute run() in benchmark. Default is %d' % bench_rep)
     parser.add_argument('source', nargs=1,
                         help='R source file for the benchmark')
     parser.add_argument('args', nargs='*',
                         help='arguments used by the source file')
     args = parser.parse_args()
+    
+    if(not os.path.isfile(args.source[0])):
+        print "[rbench]ERROR: Cannot find source file %s!" % args.source[0]
+        sys.exit(1)
+        
+    if(args.warmup_rep < 0):
+        print "[rbench]ERROR: WARMUP_REP number must be >= 0!"
+        sys.exit(1)
+    
+    if(args.bench_rep < 1):
+        print "[rbench]ERROR: BENCH_REP number must be > 0!"
+        sys.exit(1)
+        
     return args
 
 '''Return a dictionary'''
-def run_bench(config, rvm, meter, source, rargs):
-    warmup_rep = config.get('GENERAL', 'WARMUP_REP')
-    bench_rep = config.get('GENERAL', 'BENCH_REP')
+def run_bench(config, rvm, meter, warmup_rep, bench_rep, source, rargs):
     perf_cmd = config.get('GENERAL', 'PERF_CMD')
     perf_tmp = config.get('GENERAL', 'PERF_TMP')
     env = config.get(rvm, 'ENV')
@@ -64,33 +83,37 @@ def run_bench(config, rvm, meter, source, rargs):
         
     if meter == 'perf':
         warmup_cmd = ' '.join([env, perf_cmd, rcmd, rcmd_args, harness, harness_args,
-                               warmup_rep, source, rargs])
+                               str(warmup_rep), source, rargs])
         bench_cmd = ' '.join([env, perf_cmd, rcmd, rcmd_args, harness, harness_args,
-                               bench_rep, source, rargs])
+                               str(warmup_rep+bench_rep), source, rargs])
     else: #default python
         warmup_cmd = ' '.join([env, rcmd, rcmd_args, harness, harness_args,
-                               warmup_rep, source, rargs])
+                               str(warmup_rep), source, rargs])
         bench_cmd = ' '.join([env, rcmd, rcmd_args, harness, harness_args,
-                               bench_rep, source, rargs])
+                               str(warmup_rep+bench_rep), source, rargs])
     
-    #print warmup_cmd
-    warmup_n = int(warmup_rep)
-    print '[rbench]%s %s - Warmup run() %d times' % (source, rargs, warmup_n) 
+    #Start warmup
     if meter == 'perf':
         with open(perf_tmp, 'w') as f:
-            f.write(warmup_rep+'\n')
-            
-    start_t = time.time()
-    warmup_exit_code = os.system(warmup_cmd)
-    end_t = time.time()
-    warmup_t = end_t - start_t#to ms
-    
-    #print bench_cmd
-    bench_n = int(bench_rep)
-    print '[rbench]%s %s - Bench run() %d times' % (source, rargs, bench_n) 
+            f.write(str(warmup_rep)+'\n')
+    if warmup_rep > 0:
+        print '[rbench]%s %s - Pure warmup run() %d times' % (source, rargs, warmup_rep) 
+        print warmup_cmd
+                
+        start_t = time.time()
+        warmup_exit_code = os.system(warmup_cmd)
+        end_t = time.time()
+        warmup_t = end_t - start_t#to ms
+    else:
+        warmup_t = 0
+        
+        
+    #start benchmark
     if meter == 'perf':
         with open(perf_tmp, 'a') as f:
-            f.write(bench_rep+'\n')
+            f.write(str(warmup_rep+bench_rep)+'\n')
+    print '[rbench]%s %s - Warmup + Bench run() %d times' % (source, rargs, warmup_rep+bench_rep)
+    print bench_cmd
     start_t = time.time()
     bench_exit_code = os.system(bench_cmd)
     end_t = time.time()
@@ -104,7 +127,7 @@ def run_bench(config, rvm, meter, source, rargs):
     else:
         metrics = {}
         
-    metrics['time'] = (bench_t -warmup_t) * 1000 / (bench_n - warmup_n)
+    metrics['time'] = (bench_t - warmup_t) * 1000 / bench_rep
     
     return metrics
 
@@ -117,10 +140,10 @@ def report(metrics, source, rargs):
 
 def main():
     utility_dir = os.path.dirname(os.path.realpath(__file__))
-    config, rvms = parse_cfg(utility_dir)
-    args = parse_args(rvms)
+    config, rvms, warmup_rep, bench_rep = parse_cfg(utility_dir)
+    args = parse_args(rvms, warmup_rep, bench_rep)
     
-    metrics = run_bench(config, args.rvm, args.meter, args.source[0], ' '.join(args.args))
+    metrics = run_bench(config, args.rvm, args.meter, args.warmup_rep, args.bench_rep, args.source[0], ' '.join(args.args))
     
     #print cwd_dir
     #finally print the metrics
