@@ -69,7 +69,9 @@ Please refer [Running Benchmark](docs/running_benchmark.md) for additional contr
 
 We define three categories for different R program styles.
 
-### Type I: Looping Over Data
+### Benchmark Categories
+
+#### Type I: Looping Over Data
 
 ```
 #ATT bench: creation of Toeplitz matrix
@@ -81,7 +83,7 @@ for (j in 1:500) {
 }
 ```
 
-### Type II: Vector Programming
+#### Type II: Vector Programming
 
 ```
 #Riposte bench: a and g are large vectors
@@ -90,7 +92,7 @@ males_over_40 <- function(a,g) {
 }
 ```
 
-### Type III:  Native library Glue
+#### Type III:  Native library Glue
 
 ```
 #ATT bench: FFT over 2.4Mill random values
@@ -98,4 +100,9 @@ a <- rnorm(2400000);
 b <- fft(a)
 ```
 
-Collections of Benchmarks of R
+### Collections of Benchmarks of R
+- Scalar benchmark: A few simple micro benchmarks, such as fib, forloop, primes, etc..
+- shootout: R version of http://benchmarksgame.alioth.debian.org/. Different groups have different implementations
+  + fastr version: ported from https://github.com/allr/
+  + orbit version: ported from ORBIT (Optimized R Byte-code InterpreTer) project
+- ATT benchmark(R-benchmark-25): from http://r.research.att.com/benchmarks/R-benchmark-25.R
