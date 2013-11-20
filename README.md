@@ -111,3 +111,6 @@ b <- fft(a)
     + Category: Type I
 - R-benchmark-25(ATT benchmark): from http://r.research.att.com/benchmarks/R-benchmark-25.R
   + Category: Type I and III
+- mathkernel: A few simple math kernels, such as matrix-matrix multiply, vector add, etc..
+  + Each kernel has Type I, Type II, Type III implementations
+- misc: Benchmarks collected from webs
