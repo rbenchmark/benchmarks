@@ -26,13 +26,14 @@ def parse_cfg(utility_dir):
     #then change the harness file's location here
     for rvm in rvms:
         rhome = config.get(rvm, 'HOME')
-        if rhome != '':
-            if platform.system() == 'Windows':
+        if platform.system() == 'Windows':
+            if rhome != '':
                 config.set(rvm, 'CMD',  '"' + rhome + '\\' + config.get(rvm, 'CMD') + '"')
-                config.set(rvm, 'HARNESS', utility_dir+'\\'+config.get(rvm, 'HARNESS'))  
-            else:
+            config.set(rvm, 'HARNESS', utility_dir+'\\'+config.get(rvm, 'HARNESS'))  
+        else:
+            if rhome != '':
                 config.set(rvm, 'CMD',  rhome + '/' + config.get(rvm, 'CMD'))
-                config.set(rvm, 'HARNESS', utility_dir+'/'+config.get(rvm, 'HARNESS'))        
+            config.set(rvm, 'HARNESS', utility_dir+'/'+config.get(rvm, 'HARNESS'))        
     
     warmup_rep = config.getint('GENERAL', 'WARMUP_REP')
     bench_rep = config.getint('GENERAL', 'BENCH_REP')
@@ -46,7 +47,7 @@ def parse_args(rvms, warmup_rep, bench_rep):
     parser.add_argument('--meter', choices=['time','perf'], default='time',
                          help='''Meter used to measure the benchmark.
                          time: only measure the time in ms.
-                         perf: Linux perf, only available at Linux platform''')
+                         perf: Linux perf, only available on Linux platform''')
     parser.add_argument('--rvm', choices=rvms, default=rvms[1],
                         help='R VM used for the benchmark. Defined in rbench.cfg. Default is '+rvms[1])
     parser.add_argument('--warmup_rep', default=warmup_rep, type=int,
