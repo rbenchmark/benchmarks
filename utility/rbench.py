@@ -55,15 +55,11 @@ def parse_args(rvms, warmup_rep, bench_rep):
     parser.add_argument('--bench_rep', default=bench_rep, type=int,
                         help='The number of repetition to execute run() in benchmark. Default is %d' % bench_rep)
     parser.add_argument('source', nargs=1,
-                        help='R source file for the benchmark')
+                        help='R source file for the benchmark or a directory containing the benchmark files')
     parser.add_argument('args', nargs='*',
                         help='arguments used by the source file')
     args = parser.parse_args()
-    
-    if(not os.path.isfile(args.source[0])):
-        print "[rbench]ERROR: Cannot find source file %s!" % args.source[0]
-        sys.exit(1)
-        
+            
     if(args.warmup_rep < 0):
         print "[rbench]ERROR: WARMUP_REP number must be >= 0!"
         sys.exit(1)
@@ -71,8 +67,25 @@ def parse_args(rvms, warmup_rep, bench_rep):
     if(args.bench_rep < 1):
         print "[rbench]ERROR: BENCH_REP number must be > 0!"
         sys.exit(1)
+    
+    benchmarks = []
+    
+    if os.path.isdir(args.source[0]):
+        for root, dirs, files in os.walk(args.source[0]):
+            files.sort()
+            for name in files:
+                if name[-2:] == '.R':
+                    benchmarks.append(os.path.join(root, name))
+    
+    if os.path.isfile(args.source[0]):
+        benchmarks = [args.source[0]]
         
-    return args
+        
+    if len(benchmarks) == 0:
+        print "[rbench]ERROR: Cannot find benchmark R files. Please check the source: %s!" % args.source[0]
+        sys.exit(1)
+    
+    return args, benchmarks
 
 '''Return a dictionary'''
 def run_bench(config, rvm, meter, warmup_rep, bench_rep, source, rargs):
@@ -133,6 +146,10 @@ def run_bench(config, rvm, meter, warmup_rep, bench_rep, source, rargs):
         
     metrics['time'] = (bench_t - warmup_t) * 1000 / bench_rep
     
+    if bench_exit_code != 0: #wrong result
+        for key in metrics.keys():
+            metrics[key] = float('nan')
+    
     return metrics
 
 def report(metrics, source, rargs):
@@ -142,16 +159,35 @@ def report(metrics, source, rargs):
     for key in keys:
         print "%.2f,%s" % (metrics[key],key)
 
+def report_all(benchmarks, metrics_array):
+    print '------------------------------------'
+    #title
+    keys = [key for key in metrics_array[0].keys()]
+    keys.append('benchmark')
+    print ','.join(keys)
+    for i in range(0, len(benchmarks)):
+        value_strs = ['{:.2f}'.format(v) for v in metrics_array[i].values()]
+        value_strs.append(benchmarks[i])
+        print ','.join(value_strs)
+
+
 def main():
     utility_dir = os.path.dirname(os.path.realpath(__file__))
     config, rvms, warmup_rep, bench_rep = parse_cfg(utility_dir)
-    args = parse_args(rvms, warmup_rep, bench_rep)
+    args, benchmarks = parse_args(rvms, warmup_rep, bench_rep)
     
-    metrics = run_bench(config, args.rvm, args.meter, args.warmup_rep, args.bench_rep, args.source[0], ' '.join(args.args))
+    metrics_array = [None]*len(benchmarks)
+    i = 0
     
-    #print cwd_dir
-    #finally print the metrics
-    report(metrics, args.source[0], ' '.join(args.args))
+    for source in benchmarks:
+        metrics = run_bench(config, args.rvm, args.meter, args.warmup_rep, args.bench_rep, source, ' '.join(args.args))
+        #print cwd_dir
+        #finally print the metrics
+        report(metrics, source, ' '.join(args.args))
+        metrics_array[i] = metrics
+        i = i + 1
+
+    report_all(benchmarks, metrics_array)
 
 
 if __name__ == "__main__":
