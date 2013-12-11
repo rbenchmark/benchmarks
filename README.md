@@ -2,7 +2,60 @@
 
 R Benchmark Suite is a collection of benchmarks for R programming language as well as a benchmarking environment for measuring the performance of different R VM implementations.
 
-## Writing a benchmark R program
+## Available benchmark suites
+
+We defined three categories for different R program styles.
+
+### Benchmark Categories
+
+#### Type I: Looping Over Data
+
+```
+#R-benchmark-25: creation of Toeplitz matrix
+for (j in 1:500) {
+    for (k in 1:500) {
+        jk<-j - k;
+        b[k,j] <- abs(jk) + 1
+    }
+}
+```
+
+#### Type II: Vector Programming
+
+```
+#Riposte benchmark: a and g are large vectors
+males_over_40 <- function(a,g) {
+    a >= 40 & g == 1
+}
+```
+
+#### Type III:  Native library Glue
+
+```
+#R-benchmark-25:  FFT over 2.4Mill random values
+a <- rnorm(2400000);
+b <- fft(a)
+```
+
+### Collections of Benchmarks of R
+- Type_I
+  + mathkernel: Simple math kernels, such as matrix-matrix multiply, vector add, etc., written in Type I style.
+  + R-benchmark-25: subtasks of Programmation in R-benchmark-25
+  + scalar: A few simple micro benchmarks, such as fib, forloop, primes, etc..
+  + shootout-fastr: fastr version shootout, ported from https://github.com/allr/
+  + shootout-orbit: orbit version shootout, ported from ORBIT (Optimized R Byte-code InterpreTer) project
+- Type_II
+  + mathkernel: Simple math kernels, such as matrix-matrix multiply, vector add, etc., written in Type II style.
+  + riposte: Vector dominated benchmark used in Riposte project
+- Type_III
+  + mathkernel: Simple math kernels, such as matrix-matrix multiply, etc., written in Type III style.
+  + R-benchmark-25: subtasks of Matrix calculation and Matrix_functions in R-benchmark-25
+- Multi-Types
+  + R-benchmark-25((ATT benchmark): The full version, ported from http://r.research.att.com/benchmarks/R-benchmark-25.R
+  + misc: Benchmarks collected from the web
+
+
+## Writing your own benchmark R program
 
 A benchmark R program should have a mandatory run() function. The driver will call run() function in the benchmarking.
 ```
@@ -20,7 +73,7 @@ setup <- function(cmdline_args=character(0)) {
    return(cmdline_args)
 }
 
-run <- function (input) {
+run <- function (input) { # input = setup(cmdline_args)
     print("Executing hello_rbenchmark run() with input")
     print(input)
 }
@@ -67,50 +120,3 @@ Then it will use Linux perf (only on Linux Platform) for the data measuring, and
 Please refer [Running Benchmark](docs/running_benchmark.md) for additional controls of running a benchmark
 
 
-## Available benchmark suites
-
-We define three categories for different R program styles.
-
-### Benchmark Categories
-
-#### Type I: Looping Over Data
-
-```
-#ATT bench: creation of Toeplitz matrix
-for (j in 1:500) {
-    for (k in 1:500) {
-        jk<-j - k;
-        b[k,j] <- abs(jk) + 1
-    }
-}
-```
-
-#### Type II: Vector Programming
-
-```
-#Riposte bench: a and g are large vectors
-males_over_40 <- function(a,g) {
-    a >= 40 & g == 1
-}
-```
-
-#### Type III:  Native library Glue
-
-```
-#ATT bench: FFT over 2.4Mill random values
-a <- rnorm(2400000);
-b <- fft(a)
-```
-
-### Collections of Benchmarks of R
-- Scalar benchmark: A few simple micro benchmarks, such as fib, forloop, primes, etc..
-  + Category: Type I
-- shootout: R version of http://benchmarksgame.alioth.debian.org/. Different groups have different implementations
-  + fastr version: ported from https://github.com/allr/
-  + orbit version: ported from ORBIT (Optimized R Byte-code InterpreTer) project
-    + Category: Type I
-- R-benchmark-25(ATT benchmark): from http://r.research.att.com/benchmarks/R-benchmark-25.R
-  + Category: Type I and III
-- mathkernel: A few simple math kernels, such as matrix-matrix multiply, vector add, etc..
-  + Each kernel has Type I, Type II, Type III implementations
-- misc: Benchmarks collected from webs
