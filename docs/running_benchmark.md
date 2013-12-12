@@ -37,8 +37,45 @@ Then the post processing will diff the two phases, and reports the average value
   + ...: other R VMs listed in the [rbench.cfg](../utility/rbench.cfg)
 - --warmup_rep: The number of repetition to execute run() in warmup. Default is 2.
 - --bench_rep: The number of repetition to execute run() in Benchmark. At least 1. Default is 5.
-- source: The source file for benchmarking
+- source: R source file for the benchmark or a directory containing the benchmark files or a .lst file containing a list of R benchmark files
 - args: the arguments that will be parsed into the source file.
+
+## Specify target for benchmarking
+
+### A single R file
+```bash
+$ ../utility/rbench.py hello_rbenchmark.R 100
+```
+
+### A directory
+The _src_ argument is a directory. The rbench driver will search all the .R files in the directory and sub directories, and run them one by one.
+
+All the command line arguments will be applied to each R file's benchmarking.
+
+```bash
+$ ../utility/rbench.py Type_I/mathkernel 100  #100 will be applied to each .R
+```
+
+### A .lst file
+The _src_ argument is a .lst file. Each line in the .lst contains a .R file and the optional arguments for the benchmarking.
+
+Here is one example riposte.lst
+```
+# # is used for comment
+black_scholes.R 10000
+cleaning.R
+example.R
+```
+
+When you run it with
+```bash
+$ ../../utility/rbench.py riposte.lst 100
+```
+The additional argument 100 will be appended to the each line in the .lst file for benchmarking.
+For example, _black_scholes.R_  will be run as "black_scholes.R 10000 100". 
+_cleaning.R_ will be run as "cleaning.R 100"
+
+
 
 ## The Configuration Files
 

@@ -117,6 +117,8 @@ $ ../utility/rbench.py --meter perf --rvm R hello_rbenchmark.R 1000
 
 Then it will use Linux perf (only on Linux Platform) for the data measuring, and choose the R (without byte-code compiler) as the VM for benchmarking.
 
+You can run benchmark for all .R files in a directory, or run benchmarks defined in a .lst file.
+
 Please refer [Running Benchmark](docs/running_benchmark.md) for additional controls of running a benchmark
 
 

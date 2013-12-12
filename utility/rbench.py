@@ -55,7 +55,7 @@ def parse_args(rvms, warmup_rep, bench_rep):
     parser.add_argument('--bench_rep', default=bench_rep, type=int,
                         help='The number of repetition to execute run() in benchmark. Default is %d' % bench_rep)
     parser.add_argument('source', nargs=1,
-                        help='R source file for the benchmark or a directory containing the benchmark files')
+                        help='R source file for the benchmark or a directory containing the benchmark files or a .lst file containing a list of R benchmark files')
     parser.add_argument('args', nargs='*',
                         help='arguments used by the source file')
     args = parser.parse_args()
@@ -68,17 +68,27 @@ def parse_args(rvms, warmup_rep, bench_rep):
         print "[rbench]ERROR: BENCH_REP number must be > 0!"
         sys.exit(1)
     
-    benchmarks = []
+    cmd_args = ' '.join(args.args) #the comand line args
+    benchmarks = [] #each itme is a tuple (benchmarksrc, args)
     
-    if os.path.isdir(args.source[0]):
+    src = args.source[0]
+    if os.path.isdir(src):
         for root, dirs, files in os.walk(args.source[0]):
             files.sort()
             for name in files:
                 if name[-2:] == '.R':
-                    benchmarks.append(os.path.join(root, name))
+                    benchmarks.append((os.path.join(root, name), cmd_args))
     
-    if os.path.isfile(args.source[0]):
-        benchmarks = [args.source[0]]
+    if os.path.isfile(src):
+        if src.endswith('.lst'):
+            #process it with a special routine
+            srcdir = os.path.dirname(src)
+            lines = [line.strip() for line in open(src)]
+            for line in lines: #each line main contain script and args
+                if len(line) > 0 and not line.startswith('#'):
+                    benchmarks.append((os.path.join(srcdir, line) + ' ' + cmd_args).split(' ', 1))
+        else:
+            benchmarks = [(src,cmd_args)]
         
         
     if len(benchmarks) == 0:
@@ -167,7 +177,7 @@ def report_all(benchmarks, metrics_array):
     print ','.join(keys)
     for i in range(0, len(benchmarks)):
         value_strs = ['{:.2f}'.format(v) for v in metrics_array[i].values()]
-        value_strs.append(benchmarks[i])
+        value_strs.append(' '.join(benchmarks[i]))
         print ','.join(value_strs)
 
 
@@ -179,8 +189,8 @@ def main():
     metrics_array = [None]*len(benchmarks)
     i = 0
     
-    for source in benchmarks:
-        metrics = run_bench(config, args.rvm, args.meter, args.warmup_rep, args.bench_rep, source, ' '.join(args.args))
+    for (source,bench_args) in benchmarks:
+        metrics = run_bench(config, args.rvm, args.meter, args.warmup_rep, args.bench_rep, source, bench_args)
         #print cwd_dir
         #finally print the metrics
         report(metrics, source, ' '.join(args.args))
