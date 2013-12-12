@@ -72,9 +72,8 @@ When you run it with
 $ ../../utility/rbench.py riposte.lst 100
 ```
 The additional argument 100 will be appended to the each line in the .lst file for benchmarking.
-For example, _black_scholes.R_  will be run as "black_scholes.R 10000 100". 
-_cleaning.R_ will be run as "cleaning.R 100"
-
+For example, *black\_scholes.R*  will be run as "black_scholes.R 10000 100". 
+*cleaning.R* will be run as "cleaning.R 100"
 
 
 ## The Configuration Files
