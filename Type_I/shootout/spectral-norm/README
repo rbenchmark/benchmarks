@@ -1,0 +1,8 @@
+Build:
+  - fortran: gfortran spectral-norm.f90
+
+Runargs: 5500
+
+Examples:
+
+./a.out 5500

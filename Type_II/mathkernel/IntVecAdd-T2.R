@@ -2,9 +2,9 @@
 # 
 ###############################################################################
 
-setup = function(args='1000000') {
+setup = function(args='10000000') {
     n <- as.integer(args[1])
-    if(is.na(n)){ n <- 1000000 }
+    if(is.na(n)){ n <- 10000000 }
     
     cat("Vector Add two integer",  n, "size vectors, built-in +\n");
     

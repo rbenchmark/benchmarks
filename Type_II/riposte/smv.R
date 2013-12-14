@@ -18,13 +18,10 @@ setup<-function(args=c('20000000', '500000')) {
             col=force(as.integer(runif(M, 1, N))),
             val=force(runif(M))
     )
-    
     force(v)
-    
     f <- factor(m[[1]]-1L, (1L:N)-1L)
     force(f)
-    
-    list(m,v,f);
+    list(m,v,f)
 }
 
 

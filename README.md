@@ -6,10 +6,9 @@ R Benchmark Suite is a collection of benchmarks for R programming language as we
 
 We defined three categories for different R program styles.
 
-### Benchmark Categories
+### Type I: Looping Over Data
 
-#### Type I: Looping Over Data
-
+Example
 ```
 #R-benchmark-25: creation of Toeplitz matrix
 for (j in 1:500) {
@@ -19,67 +18,48 @@ for (j in 1:500) {
     }
 }
 ```
+Collected benchmarks
+- Type_I
+  + mathkernel: Simple math kernels, such as matrix-matrix multiply, vector add, etc., written in Type I style.
+  + R-benchmark-25: subtasks of Programmation in R-benchmark-25
+  + scalar: A few simple micro benchmarks, such as fib, forloop, primes, etc..
+  + shootout: Collected from difference sources, including FastR project https://github.com/allr, ORBIT project, etc. 
 
-#### Type II: Vector Programming
+### Type II: Vector Programming
 
+Example
 ```
 #Riposte benchmark: a and g are large vectors
 males_over_40 <- function(a,g) {
     a >= 40 & g == 1
 }
 ```
+Collected benchmarks
+- Type_II
+  + mathkernel: Simple math kernels, such as matrix-matrix multiply, vector add, etc., written in Type II style.
+  + riposte: Vector dominated benchmark used in Riposte project
 
-#### Type III:  Native library Glue
+### Type III:  Native library Glue
 
+Example
 ```
 #R-benchmark-25:  FFT over 2.4Mill random values
 a <- rnorm(2400000);
 b <- fft(a)
 ```
 
-### Collections of Benchmarks of R
-- Type_I
-  + mathkernel: Simple math kernels, such as matrix-matrix multiply, vector add, etc., written in Type I style.
-  + R-benchmark-25: subtasks of Programmation in R-benchmark-25
-  + scalar: A few simple micro benchmarks, such as fib, forloop, primes, etc..
-  + shootout-fastr: fastr version shootout, ported from https://github.com/allr/
-  + shootout-orbit: orbit version shootout, ported from ORBIT (Optimized R Byte-code InterpreTer) project
-- Type_II
-  + mathkernel: Simple math kernels, such as matrix-matrix multiply, vector add, etc., written in Type II style.
-  + riposte: Vector dominated benchmark used in Riposte project
+Collected benchmarks
 - Type_III
   + mathkernel: Simple math kernels, such as matrix-matrix multiply, etc., written in Type III style.
   + R-benchmark-25: subtasks of Matrix calculation and Matrix_functions in R-benchmark-25
+
+### Mixed Types
+
+Some benchmarks are hard to be categorized into a single type. We store them under
 - Multi-Types
   + R-benchmark-25((ATT benchmark): The full version, ported from http://r.research.att.com/benchmarks/R-benchmark-25.R
   + misc: Benchmarks collected from the web
 
-
-## Writing your own benchmark R program
-
-A benchmark R program should have a mandatory run() function. The driver will call run() function in the benchmarking.
-```
-#hello_rbenchmark.R
-run <- function () {
-    print("Executing hello_rbenchmark run()")
-}
-```
-
-The benchmark R program could have an optional setup() function. The driver will call setup() first, then use the return value of the setup() to call the run().
-```
-#hello_rbenchmark.R
-
-setup <- function(cmdline_args=character(0)) {
-   return(cmdline_args)
-}
-
-run <- function (input) { # input = setup(cmdline_args)
-    print("Executing hello_rbenchmark run() with input")
-    print(input)
-}
-```
-
-Please refer [Writing Benchmark](docs/writting_benchmark.md) for additional controls of the benchmark program
 
 ## Running a benchmark
 
@@ -121,4 +101,30 @@ You can run benchmark for all .R files in a directory, or run benchmarks defined
 
 Please refer [Running Benchmark](docs/running_benchmark.md) for additional controls of running a benchmark
 
+
+## Writing your own benchmark R program
+
+A benchmark R program should have a mandatory run() function. The driver will call run() function in the benchmarking.
+```
+#hello_rbenchmark.R
+run <- function () {
+    print("Executing hello_rbenchmark run()")
+}
+```
+
+The benchmark R program could have an optional setup() function. The driver will call setup() first, then use the return value of the setup() to call the run().
+```
+#hello_rbenchmark.R
+
+setup <- function(cmdline_args=character(0)) {
+   return(cmdline_args)
+}
+
+run <- function (input) { # input = setup(cmdline_args)
+    print("Executing hello_rbenchmark run() with input")
+    print(input)
+}
+```
+
+Please refer [Writing Benchmark](docs/writting_benchmark.md) for additional controls of the benchmark program
 

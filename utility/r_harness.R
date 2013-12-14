@@ -6,10 +6,16 @@
 
 harness_args <- commandArgs(TRUE)
 harness_argc <- length(harness_args)
-if(harness_argc < 3 || !file.exists(harness_args[3])) {
+if(harness_argc < 3) {
     print("Usage: Rscript --vanilla Harness.R enableByteCode[Y/N] RepTimes yourFile.R arg1 arg2 ...")
     q()
 }
+
+if(!file.exists(harness_args[3])) {
+    print("Cannot find", harness_args[3])
+    q()
+}
+
 
 enableBC <- as.logical(harness_args[1])
 if(is.na(enableBC)) { enableBC <- FALSE }
@@ -34,9 +40,11 @@ if(harness_argc > 3) {
 
 if(exists('setup')) {
     if(length(bench_args) == 0) {
-        bench_args <- setup()        
+        bench_args <- setup() 
+        TRUE
     } else {
         bench_args <- setup(bench_args)
+        FALSE
     }
 } 
 
