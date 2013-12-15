@@ -1,0 +1,7 @@
+#Six shootout benchmarks use by ORBIT paper
+nbody/nbody.R
+fannkuch-redux/fannkuch-redux.R
+spectral-norm/spectral-norm.R
+mandelbrot/mandelbrot.R
+pidigits/pidigits.R
+binary-trees/binary-trees.R

@@ -79,5 +79,5 @@ if __name__ == "__main__":
     rvm_cmd.append(tmpsrc)
     exit_code = os.system('./'+' '.join(rvm_cmd))
     #os.remove(tmpsrc)
-    exit_code
+    sys.exit(exit_code)
     
