@@ -6,21 +6,23 @@
 
 harness_args <- commandArgs(TRUE)
 harness_argc <- length(harness_args)
-if(harness_argc < 3) {
-    print("Usage: Rscript --vanilla r_harness.R enableByteCode[TRUE/FALSE] RepTimes yourFile.R arg1 arg2 ...")
+if(harness_argc < 4) {
+    print("Usage: Rscript --vanilla r_harness.R enableByteCode[TRUE/FALSE] useSystemTime[TRUE/FALSE] RepTimes yourFile.R arg1 arg2 ...")
     q()
 }
 
-if(!file.exists(harness_args[3])) {
-    print("Cannot find", harness_args[3])
+if(!file.exists(harness_args[4])) {
+    print("Cannot find", harness_args[4])
     q()
 }
 
 
 enableBC <- as.logical(harness_args[1])
 if(is.na(enableBC)) { enableBC <- FALSE }
-bench_reps <- as.integer(harness_args[2])
-source(harness_args[3])
+useSystemTime <- as.logical(harness_args[2])
+if(is.na(useSystemTime)) { useSystemTime <- FALSE }
+bench_reps <- as.integer(harness_args[3])
+source(harness_args[4])
 
 if(!exists('run')) {
     print("Error: There is no run() function in your benchmark file!")
@@ -32,27 +34,39 @@ if(enableBC) {
 	run <- cmpfun(run)
 }
 
-if(harness_argc > 3) {
-    bench_args <- harness_args[4:harness_argc]
+if(harness_argc > 4) {
+    bench_args <- harness_args[5:harness_argc]
 } else {
     bench_args <- character(0)
 }
-
 if(exists('setup')) {
     if(length(bench_args) == 0) {
         bench_args <- setup() 
-        TRUE
+        #TRUE
     } else {
         bench_args <- setup(bench_args)
-        FALSE
+        #FALSE
     }
 } 
 
 # finally do benchmark
-if(length(bench_args) == 0) {
-    for(bench_i in 1:bench_reps) { run() }
+if(useSystemTime){
+    if(length(bench_args) == 0) {
+        bench_time <- system.time(for(bench_i in 1:bench_reps) { run() })
+    } else {
+        bench_time <- system.time(for(bench_i in 1:bench_reps) { run(bench_args) })    
+    }
+    rawtime <- c(bench_time[[1]],bench_time[[2]],bench_time[[3]])
+    write(rawtime, file='.rbench.system.time', sep=',')
 } else {
-    for(bench_i in 1:bench_reps) { run(bench_args) }    
+    if(length(bench_args) == 0) {
+        for(bench_i in 1:bench_reps) { run() }
+    } else {
+        for(bench_i in 1:bench_reps) { run(bench_args) }    
+    }
 }
+
+
+
 
 

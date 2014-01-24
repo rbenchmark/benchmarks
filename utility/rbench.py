@@ -13,6 +13,7 @@ import sys, os, platform
 import time
 import argparse
 import ConfigParser
+import datetime
 from perfreport import *
 
 def parse_cfg(utility_dir):
@@ -44,10 +45,11 @@ def parse_cfg(utility_dir):
 def parse_args(rvms, warmup_rep, bench_rep):
     parser = argparse.ArgumentParser(description='''Run R benchmark script with a selected R VM.
                                                     Please refer https://github.com/rbenchmark/benchmarks for detail user manual''')
-    parser.add_argument('--meter', choices=['time','perf'], default='time',
+    parser.add_argument('--meter', choices=['time','perf', 'system.time'], default='time',
                          help='''Meter used to measure the benchmark.
-                         time: only measure the time in ms.
-                         perf: Linux perf, only available on Linux platform''')
+                         time: only measure the time in ms (Outside R process);
+                         perf: Linux perf, only available on Linux platform;
+                         system.time: measure the time use R system.time() (Inside R process)''')
     parser.add_argument('--rvm', choices=rvms, default=rvms[1],
                         help='R VM used for the benchmark. Defined in rbench.cfg. Default is '+rvms[1])
     parser.add_argument('--warmup_rep', default=warmup_rep, type=int,
@@ -107,17 +109,23 @@ def run_bench(config, rvm, meter, warmup_rep, bench_rep, source, rargs):
     harness = config.get(rvm, 'HARNESS')
     harness_args = config.get(rvm, 'HARNESS_ARGS')
     
+    #Use meter value to decide weather use system.time() inside R
+    if meter == 'system.time':
+        use_system_time = 'TRUE'
+    else:
+        use_system_time = 'FALSE'
+    
         
     if meter == 'perf':
         warmup_cmd = ' '.join([env, perf_cmd, rcmd, rcmd_args, harness, harness_args,
-                               str(warmup_rep), source, rargs])
+                               use_system_time, str(warmup_rep), source, rargs])
         bench_cmd = ' '.join([env, perf_cmd, rcmd, rcmd_args, harness, harness_args,
-                               str(warmup_rep+bench_rep), source, rargs])
+                               use_system_time, str(warmup_rep+bench_rep), source, rargs])
     else: #default python
         warmup_cmd = ' '.join([env, rcmd, rcmd_args, harness, harness_args,
-                               str(warmup_rep), source, rargs])
+                               use_system_time, str(warmup_rep), source, rargs])
         bench_cmd = ' '.join([env, rcmd, rcmd_args, harness, harness_args,
-                               str(warmup_rep+bench_rep), source, rargs])
+                               use_system_time, str(warmup_rep+bench_rep), source, rargs])
     
     #Start warmup
     if meter == 'perf':
@@ -131,9 +139,16 @@ def run_bench(config, rvm, meter, warmup_rep, bench_rep, source, rargs):
         warmup_exit_code = os.system(warmup_cmd)
         end_t = time.time()
         warmup_t = end_t - start_t#to ms
+        
+        if meter == 'system.time':
+            #read the file .rbench.system.time
+            with open('.rbench.system.time', 'r') as f:
+                lines = f.readline().split(',')
+                warmup_rtimes = [float(lines[0]), float(lines[1]), float(lines[2])]
     else:
         warmup_t = 0
-        
+        if meter == 'system.time':
+            warmup_rtimes = [0.0, 0.0, 0.0]
         
     #start benchmark
     if meter == 'perf':
@@ -145,16 +160,30 @@ def run_bench(config, rvm, meter, warmup_rep, bench_rep, source, rargs):
     bench_exit_code = os.system(bench_cmd)
     end_t = time.time()
     bench_t = end_t - start_t #to ms
+
+    if meter == 'system.time':
+    #read the file .rbench.system.time
+        with open('.rbench.system.time', 'r') as f:
+            lines = f.readline().split(',')
+            bench_rtimes = [float(lines[0]), float(lines[1]), float(lines[2])]
+            os.remove('.rbench.system.time')
     
     #finally repare return the metrix
     if meter == 'perf':
         lines = [line.strip() for line in open(perf_tmp)]
         metrics = process_perf_lines(lines)
         os.remove(perf_tmp)
-    else:
+        metrics['time'] = (bench_t - warmup_t) * 1000 / bench_rep
+    elif meter == 'time':
         metrics = {}
+        metrics['time'] = (bench_t - warmup_t) * 1000 / bench_rep
+    else: #system.time
+        metrics = {}
+        metrics['user'] = (bench_rtimes[0] - warmup_rtimes[0]) * 1000 / bench_rep
+        metrics['system'] = (bench_rtimes[1] - warmup_rtimes[1]) * 1000 / bench_rep
+        metrics['elapsed'] = (bench_rtimes[2] - warmup_rtimes[2]) * 1000 / bench_rep
         
-    metrics['time'] = (bench_t - warmup_t) * 1000 / bench_rep
+    
     
     if bench_exit_code != 0: #wrong result
         for key in metrics.keys():
@@ -169,9 +198,24 @@ def report(metrics, source, rargs):
     for key in keys:
         print "%.2f,%s" % (metrics[key],key)
 
-def report_all(benchmarks, metrics_array):
-    print '------------------------------------'
+
+def report_header():
+    print '===================  R Benchmark Report ==================='
+    now = datetime.datetime.now()
+    print '                     ', now.strftime("%Y-%m-%d %H:%M")
+ 
+def report_platform(rhome):
+    print '>> Platform'
+    #TODO: more detail platform descriptions
+    print 'Processor:', platform.processor()
+    print 'OS:',platform.platform()
+    print 'R Platform:',rhome
+
+def report_all(benchmarks, metrics_array, rhome):
+    report_header()
+    report_platform(rhome)
     #title
+    print '>> Benchmarks: %d Measured' % len(benchmarks)
     keys = [key for key in metrics_array[0].keys()]
     keys.append('benchmark')
     print ','.join(keys)
@@ -197,7 +241,7 @@ def main():
         metrics_array[i] = metrics
         i = i + 1
 
-    report_all(benchmarks, metrics_array)
+    report_all(benchmarks, metrics_array, config.get(args.rvm, 'CMD'))
 
 
 if __name__ == "__main__":
