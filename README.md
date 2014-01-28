@@ -128,7 +128,7 @@ run <- function (input) { # input = setup(cmdline_args)
 
 Please refer [Writing Benchmark](docs/writting_benchmark.md) for additional controls of the benchmark program
 
-== Credit ==
+## Credit
 
 The R-benchmark-25 benchmark is ported from http://r.research.att.com/benchmarks/.
 
@@ -136,6 +136,6 @@ The R version shootout benchmark is ported from UIUC ORBIT project and Purdue Fa
 
 The Riposte benchmark is ported from Riposte project (https://github.com/jtalbot/riposte/)
 
-== Contact ==
+## Contact
 
 Please contact Haichuan Wang (hwang154@illinois.edu) for any questions and suggestions. 
