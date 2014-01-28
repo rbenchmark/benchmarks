@@ -65,7 +65,7 @@ run<-function(n){
     a <- runif(n)
     i <- floor(runif(n)*3)+1L
     res<-rnorm(n, means[i], sd[i])
-    print(length(res));
+    cat(length(res),'\n');
 }
 
 

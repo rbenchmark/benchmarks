@@ -22,7 +22,8 @@ run<-function(data) {
         data[[2]][!ignore(data[[1]]) & bin(data[[1]]) == 1]
     }
     
-    mean(clean(data))
+    r <- mean(clean(data))
+    cat(r,'\n')
 }
 
 

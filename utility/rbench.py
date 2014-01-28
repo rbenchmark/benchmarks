@@ -57,7 +57,7 @@ def parse_args(rvms, warmup_rep, bench_rep):
     parser.add_argument('--bench_rep', default=bench_rep, type=int,
                         help='The number of repetition to execute run() in benchmark. Default is %d' % bench_rep)
     parser.add_argument('source', nargs=1,
-                        help='R source file for the benchmark or a directory containing the benchmark files or a .lst file containing a list of R benchmark files')
+                        help='R source file for the benchmark or a directory containing the benchmark files or a .list file containing a list of R benchmark files')
     parser.add_argument('args', nargs='*',
                         help='arguments used by the source file')
     args = parser.parse_args()
@@ -82,7 +82,7 @@ def parse_args(rvms, warmup_rep, bench_rep):
                     benchmarks.append((os.path.join(root, name), cmd_args))
     
     if os.path.isfile(src):
-        if src.endswith('.lst'):
+        if src.endswith('.list'):
             #process it with a special routine
             srcdir = os.path.dirname(src)
             lines = [line.strip() for line in open(src)]
@@ -142,9 +142,13 @@ def run_bench(config, rvm, meter, warmup_rep, bench_rep, source, rargs):
         
         if meter == 'system.time':
             #read the file .rbench.system.time
-            with open('.rbench.system.time', 'r') as f:
-                lines = f.readline().split(',')
-                warmup_rtimes = [float(lines[0]), float(lines[1]), float(lines[2])]
+            try:
+                with open('.rbench.system.time', 'r') as f:
+                    lines = f.readline().split(',')
+                    warmup_rtimes = [float(lines[0]), float(lines[1]), float(lines[2])]
+            except:
+                print '[rbench]Error: Cannot use system.time() to measure the running time! Fall back to meter=time'
+                meter = 'time'
     else:
         warmup_t = 0
         if meter == 'system.time':
@@ -163,10 +167,14 @@ def run_bench(config, rvm, meter, warmup_rep, bench_rep, source, rargs):
 
     if meter == 'system.time':
     #read the file .rbench.system.time
-        with open('.rbench.system.time', 'r') as f:
-            lines = f.readline().split(',')
-            bench_rtimes = [float(lines[0]), float(lines[1]), float(lines[2])]
-            os.remove('.rbench.system.time')
+        try:
+            with open('.rbench.system.time', 'r') as f:
+                lines = f.readline().split(',')
+                bench_rtimes = [float(lines[0]), float(lines[1]), float(lines[2])]
+                os.remove('.rbench.system.time')
+        except:
+               print '[rbench]Error: Cannot use system.time() to measure the running time! Fall back to meter=time'
+               meter = 'time'
     
     #finally repare return the metrix
     if meter == 'perf':

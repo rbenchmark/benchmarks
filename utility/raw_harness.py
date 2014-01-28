@@ -18,6 +18,9 @@ import sys,os
 
 
 raw_haress_str = '''
+
+rnorm <- runif
+
 if(exists('setup')) {
     if(length(bench_args) == 0) {
         bench_args <- setup() 
@@ -31,8 +34,11 @@ if(exists('setup')) {
 if(length(bench_args) == 0) {
     for(bench_i in 1:bench_reps) { run() }
 } else {
-    for(bench_i in 1:bench_reps) { run(bench_args) }    
+    for(bench_i in 1:bench_reps) { run(bench_args) }   
 }
+
+
+
 
 '''
 
@@ -44,8 +50,14 @@ if __name__ == "__main__":
     rvm_path = argv[2]
     rvm_cmd = argv[3:(argc+1)] #with all args
     
-    rep = argv[argc+1]
-    src = argv[argc+2] #the file
+    use_system_time = argv[argc+1]
+    if(bool(use_system_time)):
+        print '[rbench]Cannot use system.time() for these experiment R VMs. Fall back to meter=time.'
+
+    rep = argv[argc+2]
+    print rep
+    src = argv[argc+3] #the file
+    print src
     #construct the file's full current full path
     src = os.path.join(os.getcwd(), src)
     #now generate the source file
@@ -55,8 +67,8 @@ if __name__ == "__main__":
     tmpsrc = os.path.join(src_dir, 'rbench_'+src_basename)
     
     #then decide whether there are additional args
-    if(len(argv) > argc+3):
-        bench_args = argv[argc+3:]
+    if(len(argv) > argc+4):
+        bench_args = argv[argc+4:]
         bench_args_str = "bench_args <- c('" + "','".join(bench_args)+ "')\n"
     else:
         bench_args_str = "bench_args <- character(0)\n"
@@ -78,6 +90,6 @@ if __name__ == "__main__":
     os.chdir(rvm_path)
     rvm_cmd.append(tmpsrc)
     exit_code = os.system('./'+' '.join(rvm_cmd))
-    #os.remove(tmpsrc)
+    os.remove(tmpsrc)
     sys.exit(exit_code)
     

@@ -34,7 +34,7 @@ run<-function(data) {
 
     #bench part
     r<-outliers(data, function(x) { is.na(x) | x==9999 })
-    print(r);
+    cat(r,'\n');
 }
 
 if (!exists('harness_argc')) {

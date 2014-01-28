@@ -11,10 +11,11 @@ print <- function(...) { cat(..., '\n') }
 harness_args <- commandArgs(TRUE)
 harness_argc <- length(harness_args)
 
-cat('harness_args =', harness_args, '\n')
-cat('harness_argc =', harness_argc, '\n')
+#cat('harness_args =', harness_args, '\n')
+#cat('harness_argc =', harness_argc, '\n')
+
 #if(harness_argc < 3) {
-#    cat("Usage: ./r.sh --vanilla Harness.R enableByteCode[Y/N] RepTimes yourFile.R arg1 arg2 ...\n")
+#    cat("Usage: ./r.sh --vanilla Harness.R enableByteCode[Y/N] useSystemTime[TRUE/FALSE] RepTimes yourFile.R arg1 arg2 ...\n")
 #    q()
 #}
 
@@ -23,16 +24,22 @@ cat('harness_argc =', harness_argc, '\n')
 #    q()
 #}
 
-bench_reps <- as.integer(harness_args[4])
-source(harness_args[5])
+useSystemTime <- as.logical(harness_args[4])
+if(is.na(useSystemTime)) { useSystemTime <- FALSE }
+if(useSystemTime){
+    cat("FastR doesn't have system.time(). Cannot measure the time!\n")
+}
+
+bench_reps <- as.integer(harness_args[5])
+source(harness_args[6])
 
 if(!exists('run')) {
     cat("Error: There is no run() function in your benchmark file!\n")
     q()
 }
 
-if(harness_argc > 5) {
-    bench_args <- harness_args[6:harness_argc]
+if(harness_argc > 6) {
+    bench_args <- harness_args[7:harness_argc]
 } else {
     bench_args <- character(0)
 }

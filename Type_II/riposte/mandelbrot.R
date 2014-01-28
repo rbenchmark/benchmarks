@@ -64,7 +64,7 @@ run<-function(dataset) {
         z_re <- z_re2
         z_im <- z_im2
     }
-    print(length(cnt));
+    cat(length(cnt),'\n');
     
 }
 

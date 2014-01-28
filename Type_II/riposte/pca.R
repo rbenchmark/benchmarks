@@ -61,7 +61,7 @@ run<-function(dataset){
     r<-length(cm) #for return simple result
     #basis <- eigen(cm, symmetric=TRUE)[[2]]
     #basis
-    print(r)
+    cat(r,'\n')
 }
 
 if (!exists('harness_argc')) {

@@ -16,7 +16,7 @@ setup = function(args='200') {
 
 
 
-run <- function(data) {
+run = function(data) {
     #a and b are matrix
     A <- data[[1]]
     B <- data[[2]]

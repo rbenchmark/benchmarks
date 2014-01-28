@@ -16,7 +16,7 @@ run<-function(data) {
     #lapply(split(data,f), "length")
     #bench part
     r<-tabulate(data,100L);
-    print(length(r))
+    cat(length(r),'\n')
 }
 
 

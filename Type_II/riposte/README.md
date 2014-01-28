@@ -3,7 +3,7 @@
 Ported from https://github.com/jtalbot/riposte/tree/master/benchmarks/pact
 The original author is Justin Talbot.
 
-The benchmarks were slightly changed to follow rbenchmark's interface, and they can take input size argument now.
+The benchmarks were slightly modified to follow rbenchmark's interface, and they can take input size argument now.
 
 == Run the benchmark ==
 

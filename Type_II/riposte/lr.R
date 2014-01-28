@@ -56,7 +56,7 @@ run<-function(dataset) {
         w <- w - delta
     }
     
-    print(length(w));
+    cat(length(w),'\n');
     #glm(r~p-1, family=binomial(link="logit"), na.action=na.pass)
 
 

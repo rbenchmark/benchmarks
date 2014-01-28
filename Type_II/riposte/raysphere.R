@@ -46,7 +46,7 @@ run<-function(dataset) {
     #benchpart
     r<-intersect();
     #system.time()
-    print(r);
+    cat(r,'\n');
 }
 
 if (!exists('harness_argc')) {

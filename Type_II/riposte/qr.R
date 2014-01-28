@@ -51,7 +51,7 @@ run<-function(dataset){
             dim(m) <- c(N,N)
             #m <- m - 2/b * (v %*% (t(v) %*% m))
             #q <- q - 2/b * ((q %*% v) %*% t(v))
-            print(i,'\n')
+            cat(i,'\n')
         }
         list(q, m)
     }

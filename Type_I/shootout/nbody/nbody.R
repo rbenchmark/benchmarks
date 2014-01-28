@@ -108,7 +108,7 @@ for (k in 1:num){
 	x[,]=x[,]+tstep*v[,]
 }
 e=energyfunc(x,v,mass)
-print(e);
+cat(e,'\n');
 }
 
 if (!exists('harness_argc')) {

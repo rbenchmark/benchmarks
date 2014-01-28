@@ -16,7 +16,7 @@ run<-function(n){
     i <- floor(runif(n)*3)+1L
     res<-rnorm(n, means[i], sd[i])
     
-    print(length(res))
+    cat(length(res),'\n')
 }
 
 if (!exists('harness_argc')) {

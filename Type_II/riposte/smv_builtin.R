@@ -30,7 +30,7 @@ run<-function(dataset){
     }
     #benchpart
     res<-smv(m,v)
-    print(length(res))
+    cat(length(res),'\n')
     
 }
 

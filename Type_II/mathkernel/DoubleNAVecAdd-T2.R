@@ -19,7 +19,7 @@ setup = function(args='10000000') {
 
 
 
-run <- function(data) {
+run = function(data) {
     #a and b are matrix
     A <- data[[1]]
     B <- data[[2]]

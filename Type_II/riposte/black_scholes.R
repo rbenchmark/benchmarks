@@ -63,7 +63,7 @@ run <- function(dataset) {
         acc <- acc + black_scholes()
     }
     acc <- acc / (N_ROUNDS * N_OPTIONS)
-    print(acc)
+    cat(acc,'\n')
 }
 
 if (!exists('harness_argc')) {

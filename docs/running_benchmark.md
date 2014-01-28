@@ -29,15 +29,16 @@ Then the post processing will diff the two phases, and reports the average value
 ## The Command Line Arguments
 
 - --meter: Choose a meter for benchmarking. there are two meters right now
-  + time: use the default timer of the os. Precision is platform depenent. The reported value's unit is ms.
-  + perf: Linux perf, only available in Linux platform. The reported value is from "perf stat"
+  + time: use the default timer of the os (outside R process). Precision is platform dependent. The reported value's unit is ms.
+  + perf: Linux perf, only available on Linux platform. The reported value is from "perf stat"
+  + system.time: measure the time use R system.time() (inside R process)
 - --rvm: Choose a R VM for running the benchmark. All RVMs are defined in the [rbench.cfg](../utility/rbench.cfg) under the utility directory.
   + R: the default R in your enviroment, with R byte-code compiler disabled
   + R-bytecode: the default R in your enviroment, with R byte-code compiler enabled. By default, we use this R VM for benchmarking
   + ...: other R VMs listed in the [rbench.cfg](../utility/rbench.cfg)
 - --warmup_rep: The number of repetition to execute run() in warmup. Default is 2.
 - --bench_rep: The number of repetition to execute run() in Benchmark. At least 1. Default is 5.
-- source: R source file for the benchmark or a directory containing the benchmark files or a .lst file containing a list of R benchmark files
+- source: R source file for the benchmark or a directory containing the benchmark files or a .list file containing a list of R benchmark files
 - args: the arguments that will be parsed into the source file.
 
 ## Specify target for benchmarking
@@ -56,10 +57,10 @@ All the command line arguments will be applied to each R file's benchmarking.
 $ ../utility/rbench.py Type_I/mathkernel 100  #100 will be applied to each .R
 ```
 
-### A .lst file
-The _src_ argument is a .lst file. Each line in the .lst contains a .R file and the optional arguments for the benchmarking.
+### A .list file
+The _src_ argument is a .list file. Each line in the .list contains a .R file and the optional arguments for the benchmarking.
 
-Here is one example riposte.lst
+Here is one example riposte.list
 ```
 # # is used for comment
 black_scholes.R 10000
@@ -69,9 +70,9 @@ example.R
 
 When you run it with
 ```bash
-$ ../../utility/rbench.py riposte.lst 100
+$ ../../utility/rbench.py riposte.list 100
 ```
-The additional argument 100 will be appended to the each line in the .lst file for benchmarking.
+The additional argument 100 will be appended to the each line in the .list file for benchmarking.
 For example, *black\_scholes.R*  will be run as "black_scholes.R 10000 100". 
 *cleaning.R* will be run as "cleaning.R 100"
 
@@ -124,9 +125,9 @@ Let's use the hello_rbenchmark.R and all the default configuration as example, t
 #the command line, with the benchmark input is 1234
 ../utility/rbench.py hello_rbenchmark.R 1234
 #pure warmup
-R_COMPILE_PKGS=1 R_ENABLE_JIT=2 Rscript --vanilla /cygdrive/c/workspace/project/rbenchmark/benchmarks/utility/r_harness.R TRUE 2 hello_rbenchmark.R 1234
+R_COMPILE_PKGS=1 R_ENABLE_JIT=2 Rscript --vanilla /cygdrive/c/workspace/project/rbenchmark/benchmarks/utility/r_harness.R TRUE FALSE 2 hello_rbenchmark.R 1234
 #warmup + benchmark
-R_COMPILE_PKGS=1 R_ENABLE_JIT=2 Rscript --vanilla /cygdrive/c/workspace/project/rbenchmark/benchmarks/utility/r_harness.R TRUE 7 hello_rbenchmark.R 1234
+R_COMPILE_PKGS=1 R_ENABLE_JIT=2 Rscript --vanilla /cygdrive/c/workspace/project/rbenchmark/benchmarks/utility/r_harness.R TRUE FALSE 7 hello_rbenchmark.R 1234
 ```
 
 ## Add R VM for Benchmarking
@@ -155,6 +156,13 @@ ARGS=-f
 HARNESS=r_harness.R
 HARNESS_ARGS=--args FALSE
 ```
+
+## Support Experiment R VMs in Benchmarking
+The command line arguments of several experiment R VMs, such as FastR, Renjin, Riposte, are different to the GNU R.
+In order to benchmark these VMs, special harness scripts are used.
+- FastR: fastr_harness.R. Simulate the print() function with cat().
+- ORBIT: ORBIT_harness.R. Turn on ORBIT engine before run(), and turn off after run().
+- Riposte, Renjin, Rapydo: raw_harness.py. Adding missing functions. Run the application from the directory where the VM is installed.
 
 ## (Deprecated) Makefile based driver
 There is a makefile based driver for the benchmarking, include common.mk and Makefile in each directory. It is deprecated. 

@@ -6,7 +6,7 @@ setup <- function(cmdline_args=character(0)){
     return(cmdline_args)
 }
 
-run <- function(input) {
+run <- function(input='No input') {
     print("Executing hello_rbenchmark run() with input")
     print(input)
 }

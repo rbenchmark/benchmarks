@@ -66,7 +66,7 @@ Some benchmarks are hard to be categorized into a single type. We store them und
 The driver is [rbench.py](utility/rbench.py) under utility directory. You can use "-h" to get the help.
 ```bash
 $ rbench.py -h
-usage: rbench.py [-h] [--meter {time,perf}]
+usage: rbench.py [-h] [--meter {time,perf,system.time}]
                  [--rvm {R,R-bytecode,rbase2.4,...}]
                  [--warmup_rep WARMUP_REP] [--bench_rep BENCH_REP]
                  source [args [args ...]]
@@ -97,7 +97,7 @@ $ ../utility/rbench.py --meter perf --rvm R hello_rbenchmark.R 1000
 
 Then it will use Linux perf (only on Linux Platform) for the data measuring, and choose the R (without byte-code compiler) as the VM for benchmarking.
 
-You can run benchmark for all .R files in a directory, or run benchmarks defined in a .lst file.
+You can run benchmark for all .R files in a directory, or run benchmarks defined in a .list file.
 
 Please refer [Running Benchmark](docs/running_benchmark.md) for additional controls of running a benchmark
 
@@ -128,3 +128,14 @@ run <- function (input) { # input = setup(cmdline_args)
 
 Please refer [Writing Benchmark](docs/writting_benchmark.md) for additional controls of the benchmark program
 
+== Credit ==
+
+The R-benchmark-25 benchmark is ported from http://r.research.att.com/benchmarks/.
+
+The R version shootout benchmark is ported from UIUC ORBIT project and Purdue FastR project (https://github.com/allr/fastr).
+
+The Riposte benchmark is ported from Riposte project (https://github.com/jtalbot/riposte/)
+
+== Contact ==
+
+Please contact Haichuan Wang (hwang154@illinois.edu) for any questions and suggestions. 
