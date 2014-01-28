@@ -15,6 +15,7 @@ import argparse
 import ConfigParser
 import datetime
 from perfreport import *
+from hardwarereport import *
 
 def parse_cfg(utility_dir):
     config = ConfigParser.ConfigParser()
@@ -211,13 +212,6 @@ def report_header():
     print '===================  R Benchmark Report ==================='
     now = datetime.datetime.now()
     print '                     ', now.strftime("%Y-%m-%d %H:%M")
- 
-def report_platform(rhome):
-    print '>> Platform'
-    #TODO: more detail platform descriptions
-    print 'Processor:', platform.processor()
-    print 'OS:',platform.platform()
-    print 'R Platform:',rhome
 
 def report_all(benchmarks, metrics_array, rhome):
     report_header()
