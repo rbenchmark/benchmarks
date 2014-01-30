@@ -1,0 +1,14 @@
+#!/usr/bin/python
+
+def run(n=30):
+    if (n < 2):
+        return 1
+    else:
+        return run(n - 1) + run(n - 2)
+
+
+from sys import argv
+n = 30
+if(len(argv) > 1):
+    n = int(argv[1])
+print(run(n))
