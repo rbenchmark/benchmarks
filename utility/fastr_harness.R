@@ -24,22 +24,22 @@ harness_argc <- length(harness_args)
 #    q()
 #}
 
-useSystemTime <- as.logical(harness_args[4])
+useSystemTime <- as.logical(harness_args[2])
 if(is.na(useSystemTime)) { useSystemTime <- FALSE }
 if(useSystemTime){
     cat("FastR doesn't have system.time(). Cannot measure the time!\n")
 }
 
-bench_reps <- as.integer(harness_args[5])
-source(harness_args[6])
+bench_reps <- as.integer(harness_args[3])
+source(harness_args[4])
 
 if(!exists('run')) {
     cat("Error: There is no run() function in your benchmark file!\n")
     q()
 }
 
-if(harness_argc > 6) {
-    bench_args <- harness_args[7:harness_argc]
+if(harness_argc > 4) {
+    bench_args <- harness_args[5:harness_argc]
 } else {
     bench_args <- character(0)
 }
