@@ -51,7 +51,7 @@ if __name__ == "__main__":
     rvm_cmd = argv[3:(argc+1)] #with all args
     
     use_system_time = argv[argc+1]
-    if(bool(use_system_time)):
+    if(use_system_time == 'TRUE'):
         print '[rbench]Cannot use system.time() for these experiment R VMs. Fall back to meter=time.'
 
     rep = argv[argc+2]
@@ -89,7 +89,7 @@ if __name__ == "__main__":
     #need change to the directory
     os.chdir(rvm_path)
     rvm_cmd.append(tmpsrc)
-    exit_code = os.system('./'+' '.join(rvm_cmd))
+    exit_code = os.system(' '.join(rvm_cmd))
     os.remove(tmpsrc)
     sys.exit(exit_code)
     
