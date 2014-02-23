@@ -10,9 +10,9 @@
 #    converted to R by Haichuan
 
 
-setup <- function(args='8') {
+setup <- function(args='10') {
     n<-as.integer(args[1])
-    if(is.na(n)){ n <- 8 }
+    if(is.na(n)){ n <- 10 }
     return(n)
 }
 

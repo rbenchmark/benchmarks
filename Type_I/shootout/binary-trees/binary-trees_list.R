@@ -1,44 +1,60 @@
-# Ported directly from Purdue's binary trees
-# The tree is a List structure. Think about push it into a matrix
-# 
-# Author: Administrator
-###############################################################################
+# ------------------------------------------------------------------
+# The Computer Language Shootout
+# http://shootout.alioth.debian.org/
+#
+# Contributed by Leo Osvald
+#
+# Original Loc: https://raw.github.com/allr/fastr/master/test/r/shootout/binarytrees/binarytrees.r
+# Modified to be compatible with rbenchmark interface
+# ------------------------------------------------------------------
+
+setup <- function(args='12') {
+    n<-as.integer(args[1])
+    if(is.na(n)){ n <- 12 }
+    return(n)
+}
 
 run<-function(n) {
-
-tree <- function(item, depth) {
-    if (depth == 0L)
-        return(c(item, NA, NA))
-    return(list(item,
-                    tree(2L * item - 1L, depth - 1L),
-                    tree(2L * item, depth - 1L)))
+    tree <- function(item, depth) {
+        if (depth == 0L)
+            return(c(item, NA, NA))
+        # it is ridiculous that this doesn't help
+        next_depth <- depth - 1L
+        right_item <- 2L * item
+        left_item <- right_item - 1L
+        return(list(item,
+                        tree(left_item, next_depth),
+                        tree(right_item, next_depth)))
+    }
+    
+    check <- function(tree) {
+        if(is.na(tree[[2]][[1]])) tree[[1]] else tree[[1]] + check(tree[[2]]) - check(tree[[3]])
+    }
+    
+    min_depth <- 4L
+    max_depth <- max(min_depth + 2L, n)
+    stretch_depth <- max_depth + 1L
+    
+    cat(sep="", "stretch tree of depth ", stretch_depth, "\t check: ",
+            check(tree(0L, stretch_depth)), "\n")
+    
+    long_lived_tree <- tree(0L, max_depth)
+    
+    for (depth in seq(min_depth, max_depth, 2L)) {
+        iterations <- as.integer(2^(max_depth - depth + min_depth))
+        check_sum <- sum(sapply(
+                        1:iterations,
+                        function(i) check(tree(i, depth)) + check(tree(-i, depth))))
+        cat(sep="", iterations * 2L, "\t trees of depth ", depth, "\t check: ",
+                check_sum, "\n")
+    }
+    
+    cat(sep="", "long lived tree of depth ", max_depth, "\t check: ", 
+            check(long_lived_tree), "\n")
 }
 
-check <- function(tree) {
-    if(is.na(tree[[2]][[1]])) tree[[1]] else tree[[1]] + check(tree[[2]]) - check(tree[[3]]);
+
+if (!exists('harness_argc')) {
+    n <- setup(commandArgs(TRUE))
+    run(n)
 }
-
-
-min_depth <- 4
-max_depth <- max(min_depth + 2, n)
-stretch_depth <- max_depth + 1
-
-cat(sep="", "stretch tree of depth ", stretch_depth, "\t check: ",
-        check(tree(0, stretch_depth)), "\n")
-
-long_lived_tree <- tree(0, max_depth)
-
-for (depth in seq(min_depth, max_depth, 2)) {
-    iterations <- as.integer(2^(max_depth - depth + min_depth))
-    chk_sum <- 0L
-    for (i in 1:iterations)
-        chk_sum <- chk_sum + check(tree(i, depth)) + check(tree(-i, depth))
-    cat(sep="", iterations * 2L, "\t trees of depth ", depth, "\t check ",
-            chk_sum, "\n")
-}
-
-cat(sep="", "long lived tree of depth ", max_depth, "\t check: ", 
-        check(long_lived_tree), "\n")
-
-}
-
