@@ -16,6 +16,7 @@ There are several different implementations included in the repository.
 The fastest implementations (run with R byte-code interpreter) are
 
 | Name | File |
+|------|------|
 | bindary-trees | bindary-trees.R|
 | fannkuch-redux | fannkuch-redux.R |
 
