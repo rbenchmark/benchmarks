@@ -85,7 +85,8 @@ Then it will use Linux perf (only on Linux Platform) for the data measuring, and
 
 You can run benchmark for all .R files in a directory, or run benchmarks defined in a .list file.
 
-Please refer [Running Benchmark](docs/running_benchmark.md) for additional controls of running a benchmark
+Please refer [Running Benchmark](docs/running_benchmark.md) for additional controls of running a benchmark. 
+And the driver supports many RVMs for benchmarking. Here is the [list](docs/running_benchmark.md#supported-r-vms-for-benchmarking). 
 
 
 ## Writing your own benchmark R program
