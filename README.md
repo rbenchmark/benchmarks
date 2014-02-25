@@ -1,10 +1,19 @@
 #R Benchmark Suite
 
-R Benchmark Suite is a collection of benchmarks for R programming language as well as a benchmarking environment for measuring the performance of different R VM implementations.
+R Benchmark Suite is a `collection of benchmarks` for R programming language as well as a `benchmarking environment` for measuring the performance of different R VM implementations.
 
 ## Available benchmark suites
 
-We defined three categories for different R program styles.
+| Name | Description | Type |
+| ---- |-------------|------|
+| Shooutout | R version of [Computer Language Benchmarks Game](http://benchmarksgame.alioth.debian.org/)| Type I |
+| R-benchmark-25 | Also called [ATT benchmark](http://r.research.att.com/benchmarks/) | Type I and III |
+| scalar | Micro benchmarks, such as GCD, fib, primes, etc. | Type I |
+| mathkernel | Math kernels, such as Matrix-matrix multiply, vector add, etc. | Type I, II and III |
+| riposte | Vector dominated benchmark used in [Riposte project](https://github.com/jtalbot/riposte) | Type II |
+| misc | Some random collections | Type I, II, and III |
+
+The benchmark type is defined as
 
 ### Type I: Looping Over Data
 
@@ -18,26 +27,16 @@ for (j in 1:500) {
     }
 }
 ```
-Collected benchmarks
-- Type_I
-  + mathkernel: Simple math kernels, such as matrix-matrix multiply, vector add, etc., written in Type I style.
-  + R-benchmark-25: subtasks of Programmation in R-benchmark-25
-  + scalar: A few simple micro benchmarks, such as fib, forloop, primes, etc..
-  + shootout: Collected from difference sources, including FastR project https://github.com/allr, ORBIT project, etc. 
 
 ### Type II: Vector Programming
 
 Example
 ```
-#Riposte benchmark: a and g are large vectors
-males_over_40 <- function(a,g) {
-    a >= 40 & g == 1
+#Riposte benchmark: age and gender are large vectors
+males_over_40 <- function(age, gender) {
+    age >= 40 & gender == 1
 }
 ```
-Collected benchmarks
-- Type_II
-  + mathkernel: Simple math kernels, such as matrix-matrix multiply, vector add, etc., written in Type II style.
-  + riposte: Vector dominated benchmark used in Riposte project
 
 ### Type III:  Native library Glue
 
@@ -47,19 +46,6 @@ Example
 a <- rnorm(2400000);
 b <- fft(a)
 ```
-
-Collected benchmarks
-- Type_III
-  + mathkernel: Simple math kernels, such as matrix-matrix multiply, etc., written in Type III style.
-  + R-benchmark-25: subtasks of Matrix calculation and Matrix_functions in R-benchmark-25
-
-### Mixed Types
-
-Some benchmarks are hard to be categorized into a single type. We store them under
-- Multi-Types
-  + R-benchmark-25((ATT benchmark): The full version, ported from http://r.research.att.com/benchmarks/R-benchmark-25.R
-  + misc: Benchmarks collected from the web
-
 
 ## Running a benchmark
 
@@ -73,7 +59,7 @@ usage: rbench.py [-h] [--meter {time,perf,system.time}]
 ...
 ```
 
-Note: on Windows platform, please use "python rbench.py -h"
+Note: on Windows platform, you may use "python rbench.py -h"
 
 Do a simple benchmark
 ```bash
@@ -83,7 +69,7 @@ $ ../utility/rbench.py hello_rbenchmark.R
 
 It will use the default R VM (R-bytecode) and the default meter to benchmark the application. 
 
-The basic benchmark method has two phases
+The default benchmark method has two phases
 - pure warmup: run run() 2 times
 - warmup + benchmark: run run() 2 + 5 times
 
