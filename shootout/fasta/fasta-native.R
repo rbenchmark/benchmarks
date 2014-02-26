@@ -6,7 +6,7 @@
 # ------------------------------------------------------------------
 #
 #
-# Original Loc: https://raw.github.com/allr/fastr/master/test/r/shootout/fasta/fasta.r
+# Original Loc: https://raw.github.com/allr/fastr/master/test/r/shootout/fasta/fasta-native.r
 # Modified to be compatible with rbenchmark interface
 # ------------------------------------------------------------------
 
@@ -17,7 +17,6 @@ setup <- function(args='250000') {
 }
 
 run <-function(n) {
-
     width <- 60L
     myrandom_last <- 42L
     myrandom <- function(m) {
@@ -61,14 +60,18 @@ run <-function(n) {
             ), 2)
     
     repeat_fasta <- function(s, count) {
-        chars <- strsplit(s, split="")[[1]]
-        len <- nchar(s)
-        s2 <- c(chars, chars[1:width])
+        chars = strsplit(s, split="")[[1]]
+        len = nchar(s)
+        s2 <- character(len + width)
+        for (i in 1:len)
+            s2[[i]] <- chars[[i]]
+        for (i in 1:width)
+            s2[[len + i]] <- chars[[i]]
         pos <- 1L
         while (count) {
-            line <- min(width, count)
+            line = min(width, count)
             next_pos <- pos + line
-            cat(s2[pos:(next_pos - 1)], "\n", sep="")
+            cat(paste(s2[pos:(next_pos - 1)], collapse="", sep=""), "\n", sep="")
             pos <- next_pos
             if (pos > len) pos <- pos - len
             count <- count - line
@@ -76,19 +79,23 @@ run <-function(n) {
     }
     
     random_fasta <- function(genelist, count) {
-        psum <- cumsum(genelist[1,])
+        psum = cumsum(genelist[1,])
+        n = length(psum)
         while (count) {
-            line <- min(width, count)
-            
-            rs <- double(line)
-            for (i in 1:line)
-                rs[[i]] <- myrandom(1)
-            
-            cat(genelist[2, colSums(outer(psum, rs, "<")) + 1], "\n", sep='')
+            line = min(width, count)
+            seq <- character(line)
+            for (i in 1:line) {
+                r <- myrandom(1)
+                lo <- 1L
+                while (psum[[lo]] < r)
+                    lo <- lo + 1L
+                seq[[i]] <- genelist[[2, lo]]
+            }
+            cat(paste(seq, collapse="", sep=""), "\n", sep='')
             count <- count - line
         }
     }
-
+    
 
     cat(">ONE Homo sapiens alu\n")
     repeat_fasta(alu, 2 * n)

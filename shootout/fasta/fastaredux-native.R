@@ -6,7 +6,7 @@
 # ------------------------------------------------------------------
 #
 #
-# Original Loc: https://raw.github.com/allr/fastr/master/test/r/shootout/fasta/fasta.r
+# Original Loc: https://raw.github.com/allr/fastr/master/test/r/shootout/fastaredux/fastaredux-native.r
 # Modified to be compatible with rbenchmark interface
 # ------------------------------------------------------------------
 
@@ -18,14 +18,11 @@ setup <- function(args='250000') {
 
 run <-function(n) {
 
-    width <- 60L
-    myrandom_last <- 42L
-    myrandom <- function(m) {
-        myrandom_last <<- (myrandom_last * 3877L + 29573L) %% 139968L
-        return(m * myrandom_last / 139968)
-    }
+    width = 60L
+    lookup_size = 4096L
+    lookup_scale = as.double(lookup_size - 1L)
     
-    alu <- paste(
+    alu = paste(
             "GGCCGGGCGCGGTGGCTCACGCCTGTAATCCCAGCACTTTGG",
             "GAGGCCGAGGCGGGCGGATCACCTGAGGTCAGGAGTTCGAGA",
             "CCAGCCTGGCCAACATGGTGAAACCCCGTCTCTACTAAAAAT",
@@ -35,7 +32,7 @@ run <-function(n) {
             "AGCCTGGGCGACAGAGCGAGACTCCGTCTCAAAAA",
             sep="", collapse="")
     
-    iub <- matrix(c(
+    iub = matrix(c(
                     c(0.27, 'a'),
                     c(0.12, 'c'),
                     c(0.12, 'g'),
@@ -53,22 +50,32 @@ run <-function(n) {
                     c(0.02, 'Y')
             ), 2)
     
-    homosapiens <- matrix(c(
+    homosapiens = matrix(c(
                     c(0.3029549426680, 'a'),
                     c(0.1979883004921, 'c'),
                     c(0.1975473066391, 'g'),
                     c(0.3015094502008, 't')
             ), 2)
     
+    random <- 42L
+    random_next_lookup <- function() {
+        random <<- (random * 3877L + 29573L) %% 139968L
+        return(random * (lookup_scale / 139968))  # TODO
+    }
+    
     repeat_fasta <- function(s, count) {
-        chars <- strsplit(s, split="")[[1]]
-        len <- nchar(s)
-        s2 <- c(chars, chars[1:width])
+        chars = strsplit(s, split="")[[1]]
+        len = nchar(s)
+        s2 <- character(len + width)
+        for (i in 1:len)
+            s2[[i]] <- chars[[i]]
+        for (i in 1:width)
+            s2[[len + i]] <- chars[[i]]
         pos <- 1L
         while (count) {
-            line <- min(width, count)
+            line = min(width, count)
             next_pos <- pos + line
-            cat(s2[pos:(next_pos - 1)], "\n", sep="")
+            cat(paste(s2[pos:(next_pos - 1)], collapse="", sep=""), "\n", sep="")
             pos <- next_pos
             if (pos > len) pos <- pos - len
             count <- count - line
@@ -76,19 +83,37 @@ run <-function(n) {
     }
     
     random_fasta <- function(genelist, count) {
-        psum <- cumsum(genelist[1,])
+        n = ncol(genelist)
+        lookup <- integer(lookup_size)
+        cprob_lookup <- cumsum(genelist[1, ]) * lookup_scale
+        cprob_lookup[[n]] <- lookup_size - 1
+        
+        j <- 1L
+        for (i in 1:lookup_size) {
+            while (cprob_lookup[[j]] + 1L < i)
+                j <- j + 1L
+            lookup[[i]] <- j
+        }
+        
         while (count) {
             line <- min(width, count)
-            
-            rs <- double(line)
-            for (i in 1:line)
-                rs[[i]] <- myrandom(1)
-            
-            cat(genelist[2, colSums(outer(psum, rs, "<")) + 1], "\n", sep='')
+            seq <- character(line)
+            for (i in 1:line) {
+                r <- random_next_lookup()
+                ind <- lookup[[r + 1L]]
+                if (cprob_lookup[[ind]] < r)
+                    repeat {
+                        ind <- ind + 1L
+                        if (!(cprob_lookup[[ind]] < r))
+                            break
+                    }
+                seq[[i]] <- genelist[[2, ind]]
+            }
+            cat(paste(seq, collapse="", sep=""), "\n", sep="")
             count <- count - line
         }
     }
-
+    
 
     cat(">ONE Homo sapiens alu\n")
     repeat_fasta(alu, 2 * n)

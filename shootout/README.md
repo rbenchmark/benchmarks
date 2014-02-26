@@ -12,13 +12,15 @@ All the code were slightly modified to follow rbenchmark's interface.
 Shootout is belong to Type I R code.
 
 ## The fastest R implementation
-There are several different implementations included in the repository.
-The fastest implementations (run with R byte-code interpreter) are
+There are several different implementations of each shootout app included in the repository.
+The fastest implementations (run with R byte-code interpreter 2.4.1) are
 
 | Name | File |
 |------|------|
 | bindary-trees | bindary-trees.R|
 | fannkuch-redux | fannkuch-redux.R |
+| fasta | fastaredux.R |
+| ... | TBD |
 
 Others we're still testing.
 

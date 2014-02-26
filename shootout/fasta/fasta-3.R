@@ -6,7 +6,7 @@
 # ------------------------------------------------------------------
 #
 #
-# Original Loc: https://raw.github.com/allr/fastr/master/test/r/shootout/fasta/fasta.r
+# Original Loc: https://raw.github.com/allr/fastr/master/test/r/shootout/fasta/fasta-3.r
 # Modified to be compatible with rbenchmark interface
 # ------------------------------------------------------------------
 
@@ -17,7 +17,6 @@ setup <- function(args='250000') {
 }
 
 run <-function(n) {
-
     width <- 60L
     myrandom_last <- 42L
     myrandom <- function(m) {
@@ -76,19 +75,34 @@ run <-function(n) {
     }
     
     random_fasta <- function(genelist, count) {
-        psum <- cumsum(genelist[1,])
+        psum = cumsum(genelist[1,])
+        n = length(psum)
         while (count) {
-            line <- min(width, count)
-            
+            line = min(width, count) 
             rs <- double(line)
             for (i in 1:line)
                 rs[[i]] <- myrandom(1)
             
-            cat(genelist[2, colSums(outer(psum, rs, "<")) + 1], "\n", sep='')
+            # Binary search (vectorized)
+            inds <- 1:line
+            lo <- rep.int(1L, line); hi <- rep.int(n, line)
+            mid <- integer(line)
+            repeat {
+                mid[inds] <- (lo[inds] + hi[inds] - 1L) %/% 2
+                ge_inds = which(psum[mid] >= rs)
+                hi[ge_inds] <- mid[ge_inds]
+                lt_inds = which(psum[mid] < rs)
+                lo[lt_inds] <- mid[lt_inds] + 1L
+                inds <- which(lo < hi)
+                if (!length(inds))
+                    break
+            }
+            
+            cat(genelist[2, hi], "\n", sep='')
             count <- count - line
         }
     }
-
+    
 
     cat(">ONE Homo sapiens alu\n")
     repeat_fasta(alu, 2 * n)
