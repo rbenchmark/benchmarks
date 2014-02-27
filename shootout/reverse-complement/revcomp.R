@@ -1,5 +1,15 @@
 
-run<-function(inputfile="revcomp-input.txt") {
+
+setup <- function(args='revcomp-input250000.txt') {
+    if(length(args) >= 1) {
+        filename<-args[1]
+    } else {
+        filename = 'revcomp-input250000.txt'
+    }
+    return(filename)
+}
+
+run<-function(inputfile) {
 	exchange = function (i,j,k,l) {		 
 		t=complement[[substr(data[i],j,j)]];
 		substr(data[i],j,j)<<-complement[[substr(data[k],l,l)]];
@@ -47,5 +57,10 @@ run<-function(inputfile="revcomp-input.txt") {
 		init=i;
 	}
 	reverse(init, as.integer(length(data)+1));
-	print(data);
+	cat(data, sep='\n');
+}
+
+if (!exists('harness_argc', mode='numeric')) {
+    in_filename = setup(commandArgs(TRUE))
+    run(in_filename)
 }

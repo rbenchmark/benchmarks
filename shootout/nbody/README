@@ -1,7 +1,0 @@
-R CMD BATCH --vanilla nbody3.r run.log
-
-- How to run nbody3.R
-
-  Set num=XXX in the beginning of the script
-  Process time is dumped at the end of .Rout file
-

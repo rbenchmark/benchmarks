@@ -12,13 +12,13 @@
 
 # directly set command line argument n here
 
-setup <- function(args='100') {
+setup <- function(args='3000') {
     n<-as.integer(args[1])
-    if(is.na(n)){ n <- 100 }
+    if(is.na(n)){ n <- 3000L }
     return(n)
 }
 
-run <-function(n = 100) {
+run <-function(n) {
 
 
     #! Return element (i,j) of matrix A
@@ -135,10 +135,11 @@ run <-function(n = 100) {
     }
     
     result=sqrt(uv / vv)
-    result
+    options(digits=10)
+    cat(result,'\n')
 }
 
 if (!exists('harness_argc')) {
     n <- setup(commandArgs(TRUE))
-    cat("spectral-norm(", n, ") = ", run(n), "\n", sep="")
+    run(n)
 }

@@ -11,7 +11,15 @@
 # Conversion to R by Peng Wu
 
 # directly set command line argument n here
-run <- function(n = 500) {
+
+setup <- function(args='500') {
+    n<-as.integer(args[1])
+    if(is.na(n)){ n <- 500L }
+    return(n)
+}
+
+
+run <- function(n) {
 	
 	#! Return element (i,j) of matrix A
 	eval_A <- function(i, j) {
@@ -100,5 +108,11 @@ run <- function(n = 500) {
 	vv = sum(v*v)
 	
 	result=sqrt(uv / vv)
-	result
+    options(digits=10)
+    cat(result,'\n')
+}
+
+if (!exists('harness_argc')) {
+    n <- setup(commandArgs(TRUE))
+    run(n)
 }

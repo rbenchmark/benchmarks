@@ -20,35 +20,43 @@ setup <- function(args='knucleotide-input50000.txt') {
 
 
 run <- function(in_filename) {
-    #in order to make sure all files are compiled, put the four helper functions inside run()
     gen_freq <- function(seq, frame) {
         frame <- frame - 1L
-        ns <- length(seq) - frame
-        h <- new.env(emptyenv(), hash=TRUE)
+        ns <- nchar(seq) - frame
+        n <- 0L
+        cap <- 16L
+        freqs <- integer(cap)
         for (i in 1:ns) {
-            subseq_str = paste(seq[i:(i + frame)], collapse="", sep="")
-            if (exists(subseq_str, h, inherits=FALSE))
-                cnt <- get(subseq_str, h, inherits=FALSE)
-            else
+            subseq = substr(seq, i, i + frame)
+            cnt <- attr(freqs, subseq)
+            if (is.null(cnt)) {
                 cnt <- 0L
-            assign(subseq_str, cnt + 1L, h)
+                # ensure O(N) resizing (instead of O(N^2))
+                n <- n + 1L
+                freqs[[cap <- if (cap < n) 2L * cap else cap]] <- 0L
+            }
+            attr(freqs, subseq) <- cnt + 1L
         }
-        return(sapply(ls(h), function(k) get(k, h, inherits=FALSE)))
+        return(freqs)
     }
     
     sort_seq <- function(seq, len) {
-        fs <- gen_freq(seq, len)
-        seqs <- names(fs)
+        cnt_map <- gen_freq(seq, len)
+        #print(cnt_map)
+        attrs <- attributes(cnt_map)
+        fs <- unlist(attrs, use.names=FALSE)
+        seqs <- toupper(paste(names(attrs)))
         inds <- order(-fs, seqs)
-        # cat(paste.(seqs[inds], 100 * fs[inds] / sum(fs), collapse="\n", digits=3),
+        #cat(paste(seqs[inds], fs[inds], collapse="\n"), "\n")
+        #cat(paste.(seqs[inds], 100 * fs[inds] / sum(fs), collapse="\n", digits=3),
         cat(paste(seqs[inds], 100 * fs[inds] / sum(fs), collapse="\n"),
                 "\n")
     }
     
     find_seq <- function(seq, s) {
-        freqs <- gen_freq(seq, nchar(s))
-        if (s %in% names(freqs))
-            return(freqs[[s]])
+        cnt_map <- gen_freq(seq, nchar(s))
+        if (!is.null(cnt <- attr(cnt_map, s)))
+            return(cnt)
         return(0L)
     }
     
@@ -59,14 +67,14 @@ run <- function(in_filename) {
             else ""
         else {
             for(i in seq(along=args))
-                if(is.numeric(args[[i]]))
+                if(is.numeric(args[[i]])) 
                     args[[i]] <- as.character(round(args[[i]], digits))
                 else args[[i]] <- as.character(args[[i]])
             .Internal(paste(args, sep, collapse))
         }
     }
-    
-    # the main function
+
+    # main function
     f <- file(in_filename, "r")
     while (length(line <- readLines(f, n=1, warn=FALSE))) {
         first_char <- substr(line, 1L, 1L)
@@ -89,13 +97,13 @@ run <- function(in_filename) {
     }
     length(str_buf) <- n
     close(f)
-    seq <- strsplit(paste(str_buf, collapse=""), split="")[[1]]
+    seq <- paste(str_buf, collapse="")
     
     for (frame in 1:2)
         sort_seq(seq, frame)
     for (s in c("GGT", "GGTA", "GGTATT", "GGTATTTTAATT", "GGTATTTTAATTTATAGT"))
-        cat(find_seq(seq, tolower(s)), sep="\t", s, "\n")    
-
+        cat(find_seq(seq, tolower(s)), sep="\t", s, "\n")
+    
 }
 
 if (!exists('harness_argc', mode='numeric')) {

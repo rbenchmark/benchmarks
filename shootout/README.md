@@ -19,8 +19,15 @@ The fastest implementations (run with R byte-code interpreter 2.4.1) are
 |------|------|
 | bindary-trees | bindary-trees.R|
 | fannkuch-redux | fannkuch-redux.R |
-| fasta | fastaredux.R |
-| ... | TBD |
+| fasta | fasta-native.R |
+| fasta-redux | fastaredux.R |
+| k-nucleotide | k-nucleotide.R |
+| mandelbrot | mandelbrot1.R |
+| meteor-contest | meteor-contest.R |
+| nbody | nbody.R |
+| pidigits | pidigits.R |
+| reverse-complement | revcomp-1.R |
+| spectral-norm | spectral-norm-alt.R |
 
 Others we're still testing.
 
