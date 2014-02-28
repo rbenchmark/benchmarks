@@ -115,6 +115,10 @@ run <- function (input) { # input = setup(cmdline_args)
 
 Please refer [Writing Benchmark](docs/writting_benchmark.md) for additional controls of the benchmark program
 
+## FAQ
+
+[FAQ](FAQ.md)
+
 ## Credit
 
 The R-benchmark-25 benchmark is ported from http://r.research.att.com/benchmarks/.
