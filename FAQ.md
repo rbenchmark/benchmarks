@@ -8,6 +8,8 @@
 6. Can I execute the run() function once?
 7. Can I add another RVM support in rbenchmark driver?
 
+### Answers
+
 1. Which R VMs does rbenchmark driver support?
 
   R benchmark driver currently supports the following RVMs.
@@ -57,12 +59,12 @@
 6. Can I execute the run() function once?
 
   Yes. Most of the R benchmark applications in the repository has a default wrapper.
-```
+   ```
     if (!exists('harness_argc')) {
         n <- setup(commandArgs(TRUE))
         run(n)
     }
-``` 
+   ``` 
 
   If the RVM support all these features in the default wrapper, you can execute the application by
   something like `Rscript yourBenchmarkApp.R`.
