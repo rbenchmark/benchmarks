@@ -26,6 +26,7 @@ The fastest implementations (run with R byte-code interpreter 2.4.1) are
 | meteor-contest | meteor-contest.R |
 | nbody | nbody.R |
 | pidigits | pidigits.R |
+| regex-dna | regexdna.R |
 | reverse-complement | revcomp-1.R |
 | spectral-norm | spectral-norm-alt.R |
 
