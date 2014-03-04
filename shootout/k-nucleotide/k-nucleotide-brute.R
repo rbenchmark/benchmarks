@@ -6,7 +6,7 @@
 # 
 # Src from https://github.com/allr/fastr/tree/master/test/r/shootout/knucleotide 
 # commit 8075c3a13f
-# Slight changed for rbenchmark harness
+# Slightly changed for rbenchmark harness
 # ------------------------------------------------------------------
 
 setup <- function(args='knucleotide-input50000.txt') {

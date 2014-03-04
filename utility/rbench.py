@@ -131,7 +131,7 @@ def run_bench(config, rvm, meter, warmup_rep, bench_rep, source, rargs):
     #Start warmup
     if meter == 'perf':
         with open(perf_tmp, 'w') as f:
-            f.write(str(warmup_rep)+'\n')
+            f.write('WARMUP_TIMES:'+str(warmup_rep)+'\n')
     if warmup_rep > 0:
         print '[rbench]%s %s - Pure warmup run() %d times' % (source, rargs, warmup_rep) 
         print warmup_cmd
@@ -158,7 +158,7 @@ def run_bench(config, rvm, meter, warmup_rep, bench_rep, source, rargs):
     #start benchmark
     if meter == 'perf':
         with open(perf_tmp, 'a') as f:
-            f.write(str(warmup_rep+bench_rep)+'\n')
+            f.write('BENCH_TIMES:' + str(warmup_rep+bench_rep)+'\n')
     print '[rbench]%s %s - Warmup + Bench run() %d times' % (source, rargs, warmup_rep+bench_rep)
     print bench_cmd
     start_t = time.time()
@@ -181,7 +181,7 @@ def run_bench(config, rvm, meter, warmup_rep, bench_rep, source, rargs):
     if meter == 'perf':
         lines = [line.strip() for line in open(perf_tmp)]
         metrics = process_perf_lines(lines)
-        os.remove(perf_tmp)
+        #os.remove(perf_tmp)
         metrics['time'] = (bench_t - warmup_t) * 1000 / bench_rep
     elif meter == 'time':
         metrics = {}
