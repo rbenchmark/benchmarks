@@ -9,7 +9,7 @@ usage: rbench.py [-h] [--meter {time,perf}]
 ...
 '''
 
-import sys, os, platform
+import sys, os, platform, subprocess
 import time
 import argparse
 import ConfigParser
@@ -24,22 +24,22 @@ def parse_cfg(utility_dir):
     for rvm in config.sections():
         if (rvm != 'GENERAL'):
             rvms.append(rvm)
-    
+
     #then change the harness file's location here
     for rvm in rvms:
         rhome = config.get(rvm, 'HOME')
         if platform.system() == 'Windows':
             if rhome != '':
                 config.set(rvm, 'CMD',  '"' + rhome + '\\' + config.get(rvm, 'CMD') + '"')
-            config.set(rvm, 'HARNESS', utility_dir+'\\'+config.get(rvm, 'HARNESS'))  
+            config.set(rvm, 'HARNESS', utility_dir+'\\'+config.get(rvm, 'HARNESS'))
         else:
             if rhome != '':
                 config.set(rvm, 'CMD',  rhome + '/' + config.get(rvm, 'CMD'))
-            config.set(rvm, 'HARNESS', utility_dir+'/'+config.get(rvm, 'HARNESS'))        
-    
+            config.set(rvm, 'HARNESS', utility_dir+'/'+config.get(rvm, 'HARNESS'))
+
     warmup_rep = config.getint('GENERAL', 'WARMUP_REP')
     bench_rep = config.getint('GENERAL', 'BENCH_REP')
-    
+
     return config, rvms, warmup_rep, bench_rep
 
 
@@ -57,23 +57,25 @@ def parse_args(rvms, warmup_rep, bench_rep):
                         help='The number of repetition to execute run() in warmup. Default is %d' % warmup_rep)
     parser.add_argument('--bench_rep', default=bench_rep, type=int,
                         help='The number of repetition to execute run() in benchmark. Default is %d' % bench_rep)
+    parser.add_argument('--timingfile', default='rbench.csv',
+                        help='File to log the timing data in CSV format.  Default is rbench.csv')
     parser.add_argument('source', nargs=1,
                         help='R source file for the benchmark or a directory containing the benchmark files or a .list file containing a list of R benchmark files')
     parser.add_argument('args', nargs='*',
                         help='arguments used by the source file')
     args = parser.parse_args()
-            
+
     if(args.warmup_rep < 0):
         print "[rbench]ERROR: WARMUP_REP number must be >= 0!"
         sys.exit(1)
-    
+
     if(args.bench_rep < 1):
         print "[rbench]ERROR: BENCH_REP number must be > 0!"
         sys.exit(1)
-    
+
     cmd_args = ' '.join(args.args) #the comand line args
     benchmarks = [] #each itme is a tuple (benchmarksrc, args)
-    
+
     src = args.source[0]
     if os.path.isdir(src):
         for root, dirs, files in os.walk(args.source[0]):
@@ -81,7 +83,7 @@ def parse_args(rvms, warmup_rep, bench_rep):
             for name in files:
                 if name[-2:] == '.R':
                     benchmarks.append((os.path.join(root, name), cmd_args))
-    
+
     if os.path.isfile(src):
         if src.endswith('.list'):
             #process it with a special routine
@@ -92,12 +94,11 @@ def parse_args(rvms, warmup_rep, bench_rep):
                     benchmarks.append((os.path.join(srcdir, line) + ' ' + cmd_args).split(' ', 1))
         else:
             benchmarks = [(src,cmd_args)]
-        
-        
+
     if len(benchmarks) == 0:
         print "[rbench]ERROR: Cannot find benchmark R files. Please check the source: %s!" % args.source[0]
         sys.exit(1)
-    
+
     return args, benchmarks
 
 '''Return a dictionary'''
@@ -109,14 +110,13 @@ def run_bench(config, rvm, meter, warmup_rep, bench_rep, source, rargs):
     rcmd_args = config.get(rvm, 'ARGS')
     harness = config.get(rvm, 'HARNESS')
     harness_args = config.get(rvm, 'HARNESS_ARGS')
-    
+
     #Use meter value to decide weather use system.time() inside R
     if meter == 'system.time':
         use_system_time = 'TRUE'
     else:
         use_system_time = 'FALSE'
-    
-        
+
     if meter == 'perf':
         warmup_cmd = ' '.join([env, perf_cmd, rcmd, rcmd_args, harness, harness_args,
                                use_system_time, str(warmup_rep), source, rargs])
@@ -127,20 +127,26 @@ def run_bench(config, rvm, meter, warmup_rep, bench_rep, source, rargs):
                                use_system_time, str(warmup_rep), source, rargs])
         bench_cmd = ' '.join([env, rcmd, rcmd_args, harness, harness_args,
                                use_system_time, str(warmup_rep+bench_rep), source, rargs])
-    
+
     #Start warmup
     if meter == 'perf':
         with open(perf_tmp, 'w') as f:
             f.write('WARMUP_TIMES:'+str(warmup_rep)+'\n')
     if warmup_rep > 0:
-        print '[rbench]%s %s - Pure warmup run() %d times' % (source, rargs, warmup_rep) 
+        print '[rbench]%s %s - Pure warmup run() %d times' % (source, rargs, warmup_rep)
         print warmup_cmd
-                
+
         start_t = time.time()
-        warmup_exit_code = os.system(warmup_cmd)
+        try:
+            warmup_exit_code = subprocess.call(warmup_cmd + " 2>&1 >/dev/null", shell=True)
+            if warmup_exit_code < 0:
+                print >>sys.stderr, "Warmup terminated by signal ", -warmup_exit_code
+        except OSError as e:  # Terminate the script on OS error.
+            print >>sys.stderr, "Execution failed: ", e
+            raise
         end_t = time.time()
         warmup_t = end_t - start_t#to ms
-        
+
         if meter == 'system.time':
             #read the file .rbench.system.time
             try:
@@ -154,7 +160,7 @@ def run_bench(config, rvm, meter, warmup_rep, bench_rep, source, rargs):
         warmup_t = 0
         if meter == 'system.time':
             warmup_rtimes = [0.0, 0.0, 0.0]
-        
+
     #start benchmark
     if meter == 'perf':
         with open(perf_tmp, 'a') as f:
@@ -162,7 +168,13 @@ def run_bench(config, rvm, meter, warmup_rep, bench_rep, source, rargs):
     print '[rbench]%s %s - Warmup + Bench run() %d times' % (source, rargs, warmup_rep+bench_rep)
     print bench_cmd
     start_t = time.time()
-    bench_exit_code = os.system(bench_cmd)
+    try:
+        bench_exit_code = subprocess.call(bench_cmd + " 2>&1 >/dev/null", shell=True)
+        if bench_exit_code < 0:
+            print >>sys.stderr, "Benchmark terminated by signal ", -bench_exit_code
+    except OSError as e:  # Terminate the script on OS error.
+        print >>sys.stderr, "Execution failed: ", e
+        raise
     end_t = time.time()
     bench_t = end_t - start_t #to ms
 
@@ -176,7 +188,7 @@ def run_bench(config, rvm, meter, warmup_rep, bench_rep, source, rargs):
         except:
                print '[rbench]Error: Cannot use system.time() to measure the running time! Fall back to meter=time'
                meter = 'time'
-    
+
     #finally repare return the metrix
     if meter == 'perf':
         lines = [line.strip() for line in open(perf_tmp)]
@@ -191,17 +203,14 @@ def run_bench(config, rvm, meter, warmup_rep, bench_rep, source, rargs):
         metrics['user'] = (bench_rtimes[0] - warmup_rtimes[0]) * 1000 / bench_rep
         metrics['system'] = (bench_rtimes[1] - warmup_rtimes[1]) * 1000 / bench_rep
         metrics['elapsed'] = (bench_rtimes[2] - warmup_rtimes[2]) * 1000 / bench_rep
-        
-    
-    
     if bench_exit_code != 0: #wrong result
         for key in metrics.keys():
             metrics[key] = float('nan')
-    
+
     return metrics
 
 def report(metrics, source, rargs):
-    print '[rbench]%s %s - Metrics for one execution of run()' % (source, rargs) 
+    print '[rbench]%s %s - Metrics for one execution of run()' % (source, rargs)
     keys = metrics.keys()
     keys.sort()
     for key in keys:
@@ -213,37 +222,67 @@ def report_header():
     now = datetime.datetime.now()
     print '                     ', now.strftime("%Y-%m-%d %H:%M")
 
-def report_all(benchmarks, metrics_array, rhome):
+def report_times(out, metrics_array, benchmarks, runspec, sys_keys, sys_vals, print_headers):
+    if print_headers:
+        keys = [key for key in metrics_array[0].keys()]
+        keys.append(','.join(['timestamp', 'benchmark', 'args', 'path', sys_keys]))
+        print >>out, ','.join(keys)
+    for i in range(0, len(benchmarks)):
+        value_strs = ['{:.2f}'.format(v) for v in metrics_array[i].values()]
+        (source, args) = benchmarks[i]
+        (source_dir, source_file, timestamp) = runspec[i]
+        value_strs.append(','.join([timestamp, source_file, args, source_dir, sys_vals]))
+        print >>out, ','.join(value_strs)
+
+def report_all(benchmarks, metrics_array, runspec, rhome, timingfile, sys_keys, sys_vals):
     report_header()
     report_platform(rhome)
     #title
     print '>> Benchmarks: %d Measured' % len(benchmarks)
-    keys = [key for key in metrics_array[0].keys()]
-    keys.append('benchmark')
-    print ','.join(keys)
-    for i in range(0, len(benchmarks)):
-        value_strs = ['{:.2f}'.format(v) for v in metrics_array[i].values()]
-        value_strs.append(' '.join(benchmarks[i]))
-        print ','.join(value_strs)
-
+    report_times(sys.stdout, metrics_array, benchmarks, runspec, sys_keys, sys_vals, True)
+    try:
+        print_header = not os.path.isfile(timingfile)
+        out = open(timingfile, "a")
+        print 'Logging the times in %s' % timingfile
+        report_times(out, metrics_array, benchmarks, runspec, sys_keys, sys_vals, print_header)
+    except IOError as e:
+        print >>sys.stderr, "I/O error({0}): {1}".format(e.errno, e.strerror)
+        print >>sys.stderr, "Benchmark data could not be logged!"
+    else:
+        out.close()
 
 def main():
     utility_dir = os.path.dirname(os.path.realpath(__file__))
     config, rvms, warmup_rep, bench_rep = parse_cfg(utility_dir)
     args, benchmarks = parse_args(rvms, warmup_rep, bench_rep)
-    
     metrics_array = [None]*len(benchmarks)
+    runspec = [None]*len(benchmarks)
     i = 0
-    
+    cur_dir = os.getcwd()
     for (source,bench_args) in benchmarks:
-        metrics = run_bench(config, args.rvm, args.meter, args.warmup_rep, args.bench_rep, source, bench_args)
+        try:
+            (source_dir, source_file) = os.path.split(os.path.abspath(source))
+            os.chdir(source_dir)
+            metrics = run_bench(config, args.rvm, args.meter, args.warmup_rep, args.bench_rep, source_file, bench_args)
+            runspec[i] = [source_dir, source_file, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
+        except Exception as e:
+            print e;
+            sys.exit(1)
+        finally:
+            os.chdir(cur_dir)
         #print cwd_dir
         #finally print the metrics
         report(metrics, source, ' '.join(args.args))
         metrics_array[i] = metrics
         i = i + 1
 
-    report_all(benchmarks, metrics_array, config.get(args.rvm, 'CMD'))
+    report_all(benchmarks, metrics_array, runspec, config.get(args.rvm, 'CMD'), args.timingfile,
+               'runs,Rscript,RscriptArgs,env,uname',
+               "{},{},{},{},{}".format(args.warmup_rep + args.bench_rep,
+                                       args.rvm,
+                                       config.get(args.rvm, 'HOME'),
+                                       config.get(args.rvm, 'ENV'),
+                                       ' '.join(platform.uname())))
 
 
 if __name__ == "__main__":
