@@ -14,8 +14,10 @@ import time
 import argparse
 import ConfigParser
 import datetime
+from collections import OrderedDict
 from perfreport import *
 from hardwarereport import *
+from time import strftime
 
 def parse_cfg(utility_dir):
     config = ConfigParser.ConfigParser()
@@ -209,6 +211,10 @@ def run_bench(config, rvm, meter, warmup_rep, bench_rep, source, rargs):
 
     return metrics
 
+def timestamp():
+    now = datetime.datetime.now();
+    return now.strftime("%Y-%m-%d %H:%M:%S") + strftime(" %z (%Z)", time.localtime())
+
 def report(metrics, source, rargs):
     print '[rbench]%s %s - Metrics for one execution of run()' % (source, rargs)
     keys = metrics.keys()
@@ -216,35 +222,36 @@ def report(metrics, source, rargs):
     for key in keys:
         print "%.2f,%s" % (metrics[key],key)
 
-
 def report_header():
     print '===================  R Benchmark Report ==================='
     now = datetime.datetime.now()
-    print '                     ', now.strftime("%Y-%m-%d %H:%M")
+    print '                     ', timestamp()
 
-def report_times(out, metrics_array, benchmarks, runspec, sys_keys, sys_vals, print_headers):
+def report_times(out, metrics_array, benchmarks, runspec, expt_env, print_headers):
     if print_headers:
         keys = [key for key in metrics_array[0].keys()]
-        keys.append(','.join(['timestamp', 'benchmark', 'args', 'path', sys_keys]))
+        keys += ['timestamp', 'benchmark', 'args', 'path']
+        keys += expt_env.keys()
         print >>out, ','.join(keys)
     for i in range(0, len(benchmarks)):
         value_strs = ['{:.2f}'.format(v) for v in metrics_array[i].values()]
         (source, args) = benchmarks[i]
         (source_dir, source_file, timestamp) = runspec[i]
-        value_strs.append(','.join([timestamp, source_file, args, source_dir, sys_vals]))
+        value_strs += [timestamp, source_file, args, source_dir]
+        value_strs += expt_env.values()
         print >>out, ','.join(value_strs)
 
-def report_all(benchmarks, metrics_array, runspec, rhome, timingfile, sys_keys, sys_vals):
+def report_all(benchmarks, metrics_array, runspec, rhome, timingfile, expt_env):
     report_header()
     report_platform(rhome)
     #title
     print '>> Benchmarks: %d Measured' % len(benchmarks)
-    report_times(sys.stdout, metrics_array, benchmarks, runspec, sys_keys, sys_vals, True)
+    report_times(sys.stdout, metrics_array, benchmarks, runspec, expt_env, True)
     try:
         print_header = not os.path.isfile(timingfile)
         out = open(timingfile, "a")
         print 'Logging the times in %s' % timingfile
-        report_times(out, metrics_array, benchmarks, runspec, sys_keys, sys_vals, print_header)
+        report_times(out, metrics_array, benchmarks, runspec, expt_env, print_header)
     except IOError as e:
         print >>sys.stderr, "I/O error({0}): {1}".format(e.errno, e.strerror)
         print >>sys.stderr, "Benchmark data could not be logged!"
@@ -264,7 +271,7 @@ def main():
             (source_dir, source_file) = os.path.split(os.path.abspath(source))
             os.chdir(source_dir)
             metrics = run_bench(config, args.rvm, args.meter, args.warmup_rep, args.bench_rep, source_file, bench_args)
-            runspec[i] = [source_dir, source_file, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
+            runspec[i] = [source_dir, source_file, timestamp()]
         except Exception as e:
             print e;
             sys.exit(1)
@@ -276,13 +283,17 @@ def main():
         metrics_array[i] = metrics
         i = i + 1
 
-    report_all(benchmarks, metrics_array, runspec, config.get(args.rvm, 'CMD'), args.timingfile,
-               'runs,Rscript,RscriptArgs,env,uname',
-               "{},{},{},{},{}".format(args.warmup_rep + args.bench_rep,
-                                       args.rvm,
-                                       config.get(args.rvm, 'HOME'),
-                                       config.get(args.rvm, 'ENV'),
-                                       ' '.join(platform.uname())))
+    expt_env = OrderedDict()
+    expt_env['runs'] = str(args.warmup_rep + args.bench_rep)
+    expt_env['Rscript'] = args.rvm
+    expt_env['RscriptHome'] = config.get(args.rvm, 'HOME')
+    expt_env['RscriptArgs'] = config.get(args.rvm, 'ARGS')
+    expt_env['env'] = config.get(args.rvm, 'ENV')
+    expt_env['platform'] = ' '.join([platform.system(), platform.release(),
+                                     platform.version(), platform.machine(),
+                                     platform.processor()])
+    report_all(benchmarks, metrics_array, runspec, config.get(args.rvm, 'CMD'),
+               args.timingfile, expt_env)
 
 
 if __name__ == "__main__":
