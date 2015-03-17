@@ -227,8 +227,8 @@ def report_header():
     now = datetime.datetime.now()
     print '                     ', timestamp()
 
-def report_times(out, metrics_array, benchmarks, runspec, expt_env, print_headers):
-    if print_headers:
+def report_times(out, metrics_array, benchmarks, runspec, expt_env, print_colnames):
+    if print_colnames:
         keys = [key for key in metrics_array[0].keys()]
         keys += ['timestamp', 'benchmark', 'args', 'path']
         keys += expt_env.keys()
@@ -241,22 +241,12 @@ def report_times(out, metrics_array, benchmarks, runspec, expt_env, print_header
         value_strs += expt_env.values()
         print >>out, ','.join(value_strs)
 
-def report_all(benchmarks, metrics_array, runspec, rhome, timingfile, expt_env):
+def report_all(benchmarks, metrics_array, runspec, rhome, expt_env):
     report_header()
     report_platform(rhome)
     #title
     print '>> Benchmarks: %d Measured' % len(benchmarks)
     report_times(sys.stdout, metrics_array, benchmarks, runspec, expt_env, True)
-    try:
-        print_header = not os.path.isfile(timingfile)
-        out = open(timingfile, "a")
-        print 'Logging the times in %s' % timingfile
-        report_times(out, metrics_array, benchmarks, runspec, expt_env, print_header)
-    except IOError as e:
-        print >>sys.stderr, "I/O error({0}): {1}".format(e.errno, e.strerror)
-        print >>sys.stderr, "Benchmark data could not be logged!"
-    else:
-        out.close()
 
 def main():
     utility_dir = os.path.dirname(os.path.realpath(__file__))
@@ -264,25 +254,6 @@ def main():
     args, benchmarks = parse_args(rvms, warmup_rep, bench_rep)
     metrics_array = [None]*len(benchmarks)
     runspec = [None]*len(benchmarks)
-    i = 0
-    cur_dir = os.getcwd()
-    for (source,bench_args) in benchmarks:
-        try:
-            (source_dir, source_file) = os.path.split(os.path.abspath(source))
-            os.chdir(source_dir)
-            metrics = run_bench(config, args.rvm, args.meter, args.warmup_rep, args.bench_rep, source_file, bench_args)
-            runspec[i] = [source_dir, source_file, timestamp()]
-        except Exception as e:
-            print e;
-            sys.exit(1)
-        finally:
-            os.chdir(cur_dir)
-        #print cwd_dir
-        #finally print the metrics
-        report(metrics, source, ' '.join(args.args))
-        metrics_array[i] = metrics
-        i = i + 1
-
     expt_env = OrderedDict()
     expt_env['runs'] = str(args.warmup_rep + args.bench_rep)
     expt_env['Rscript'] = args.rvm
@@ -292,8 +263,41 @@ def main():
     expt_env['platform'] = ' '.join([platform.system(), platform.release(),
                                      platform.version(), platform.machine(),
                                      platform.processor()])
-    report_all(benchmarks, metrics_array, runspec, config.get(args.rvm, 'CMD'),
-               args.timingfile, expt_env)
+    i = 0
+    cur_dir = os.getcwd()
+    try:
+        print_colnames = not os.path.isfile(args.timingfile)
+        out = open(args.timingfile, "a")
+        print 'Logging the times in %s' % args.timingfile
+    except IOError as e:
+        print >>sys.stderr, "I/O error({0}): {1}".format(e.errno, e.strerror)
+        print >>sys.stderr, "Benchmark data could not be logged!"
+
+    for (source,bench_args) in benchmarks:
+        try:
+            (source_dir, source_file) = os.path.split(os.path.abspath(source))
+            os.chdir(source_dir)
+            metrics = run_bench(config, args.rvm, args.meter, args.warmup_rep, args.bench_rep, source_file, bench_args)
+            runspec[i] = [source_dir, source_file, timestamp()]
+            metrics_array[i] = metrics
+            report_times(out, metrics_array[:1], benchmarks[:1], runspec[:1], expt_env, print_colnames)
+            out.flush()
+            os.fsync(out)
+            print_colnames = False  # No column names after the first iteration.
+            #finally print the metrics
+            report(metrics, source, ' '.join(args.args))
+            i = i + 1
+        except IOError as e:
+          print >>sys.stderr, "I/O error({0}): {1}".format(e.errno, e.strerror)
+          print >>sys.stderr, "Some of the benchmark data could not be logged!"
+        except Exception as e:
+            print e;
+            sys.exit(1)
+        finally:
+            os.chdir(cur_dir)
+
+    out.close()
+    report_all(benchmarks, metrics_array, runspec, config.get(args.rvm, 'CMD'), expt_env)
 
 
 if __name__ == "__main__":
