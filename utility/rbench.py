@@ -307,7 +307,7 @@ def main():
             metrics = run_bench(config, args.rvm, args.meter, args.warmup_rep, args.bench_rep, source_file, bench_args, bench_log)
             runspec[i] = [source_dir, source_file, timestamp()]
             metrics_array[i] = metrics
-            report_times(out, metrics_array[:1], benchmarks[:1], runspec[:1], expt_env, print_colnames)
+            report_times(out, metrics_array[i:i+1], benchmarks[i:i+1], runspec[i:i+1], expt_env, print_colnames)
             out.flush()
             os.fsync(out)
             print_colnames = False  # No column names after the first iteration.
