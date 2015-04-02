@@ -18,7 +18,7 @@ $ cd examples
 $ ../utility/rbench.py hello_rbenchmark.R
 ```
 
-It will use the default R VM (R-bytecode) and the default meter to benchmark the application. 
+It will use the default R VM (R-bytecode) and the default meter to benchmark the application. The output of benchmark application will be thrown away (redirect to /dev/null), and the timing result will be recorded in rbench.csv file.
 
 The basic benchmark method has two phases
 - pure warmup: run run() 2 times
@@ -33,13 +33,15 @@ Then the post processing will diff the two phases, and reports the average value
   + perf: Linux perf, only available on Linux platform. The reported value is from "perf stat"
   + system.time: measure the time use R system.time() (inside R process)
 - --rvm: Choose a R VM for running the benchmark. All RVMs are defined in the [rbench.cfg](../utility/rbench.cfg) under the utility directory.
-  + R: the default R in your enviroment, with R byte-code compiler disabled
-  + R-bytecode: the default R in your enviroment, with R byte-code compiler enabled. By default, we use this R VM for benchmarking
+  + R: the default R in your environment, with R byte-code compiler disabled
+  + R-bytecode: the default R in your environment, with R byte-code compiler enabled. By default, we use this R VM for benchmarking
   + ...: other R VMs listed in the [rbench.cfg](../utility/rbench.cfg)
 - --warmup_rep: The number of repetition to execute run() in warmup. Default is 2.
 - --bench_rep: The number of repetition to execute run() in Benchmark. At least 1. Default is 5.
 - source: R source file for the benchmark or a directory containing the benchmark files or a .list file containing a list of R benchmark files
 - args: the arguments that will be parsed into the source file.
+- timingfile: the file to log the timing data in CSV format.  Default is "rbench.csv"
+- bench_log: the file to log the output from the benchmarks or "stdout" to redirect to the script stdout (usually screen).
 
 ## Specify target for benchmarking
 

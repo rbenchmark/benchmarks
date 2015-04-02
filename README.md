@@ -67,7 +67,7 @@ $ cd examples
 $ ../utility/rbench.py hello_rbenchmark.R
 ```
 
-It will use the default R VM (R-bytecode) and the default meter to benchmark the application. 
+It will use the default R VM (R-bytecode) and the default meter to benchmark the application. The output of benchmark application will be thrown away (redirect to "/dev/null"), and the timing result will be recorded in "rbench.csv" file.
 
 The default benchmark method has two phases
 - pure warmup: run run() 2 times
@@ -78,10 +78,10 @@ Then the post processing will diff the two phases, and reports the average value
 You can use command line to do more controls
 ```bash
 $ cd examples
-$ ../utility/rbench.py --meter perf --rvm R hello_rbenchmark.R 1000
+$ ../utility/rbench.py --meter perf --rvm R --bench_log stdout hello_rbenchmark.R 1000
 ```
 
-Then it will use Linux perf (only on Linux Platform) for the data measuring, and choose the R (without byte-code compiler) as the VM for benchmarking.
+Then it will use Linux perf (only on Linux Platform) for the data measuring, choose the R (without byte-code compiler) as the VM for benchmarking, and dump the benchmark's output to the standard output.
 
 You can run benchmark for all .R files in a directory, or run benchmarks defined in a .list file.
 
@@ -129,4 +129,4 @@ The Riposte benchmark is ported from Riposte project (https://github.com/jtalbot
 
 ## Contact
 
-Please contact Haichuan Wang (hwang154@illinois.edu) for any questions and suggestions. 
+Please contact Haichuan Wang (hwang154@illinois.edu) and Arun Chauhan(arunchauhan@google.com) for any questions and suggestions. 
