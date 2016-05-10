@@ -214,10 +214,9 @@ def run_bench(config, rvm, meter, warmup_rep, bench_rep, source, rargs, bench_lo
         lines = [line.strip() for line in open(perf_tmp)]
         metrics = process_perf_lines(lines)
         #os.remove(perf_tmp)
-        metrics['time'] = (bench_t - warmup_t) * 1000 / bench_rep
     elif meter == 'time':
         metrics = {}
-        metrics['time'] = (bench_t - warmup_t) * 1000 / bench_rep
+        metrics['time'] = bench_t * 1000 / bench_rep
     else: #system.time
         metrics = {}
         metrics['user'] = (bench_rtimes[0] - warmup_rtimes[0]) * 1000 / bench_rep
