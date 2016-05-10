@@ -107,7 +107,7 @@ def parse_args(rvms, warmup_rep, bench_rep):
 
 '''Return a dictionary'''
 def run_bench(config, rvm, meter, warmup_rep, bench_rep, source, rargs, bench_log):
-    perf_cmd = config.get('GENERAL', 'PERF_CMD')
+    perf_cmd = config.get('GENERAL', 'PERF_CMD').split()
     perf_tmp = config.get('GENERAL', 'PERF_TMP')
     rcmd = config.get(rvm, 'CMD')
     rcmd_args = config.get(rvm, 'ARGS')
@@ -121,9 +121,9 @@ def run_bench(config, rvm, meter, warmup_rep, bench_rep, source, rargs, bench_lo
         use_system_time = 'FALSE'
 
     if meter == 'perf':
-        warmup_cmd = [perf_cmd, rcmd, rcmd_args, harness, harness_args,
+        warmup_cmd = perf_cmd + [rcmd, rcmd_args, harness, harness_args,
                       use_system_time, str(warmup_rep), source, rargs]
-        bench_cmd = [perf_cmd, rcmd, rcmd_args, harness, harness_args,
+        bench_cmd = perf_cmd + [rcmd, rcmd_args, harness, harness_args,
                      use_system_time, str(warmup_rep+bench_rep), source, rargs]
     else: #default python
         warmup_cmd = [rcmd, rcmd_args, harness, harness_args,
