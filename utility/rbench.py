@@ -317,9 +317,6 @@ def main():
         except IOError as e:
           print >>sys.stderr, "I/O error({0}): {1}".format(e.errno, e.strerror)
           print >>sys.stderr, "Some of the benchmark data could not be logged!"
-        except Exception as e:
-            print e;
-            sys.exit(1)
         finally:
             os.chdir(cur_dir)
 
