@@ -37,13 +37,9 @@ def process_perf_lines(lines):
                 mname, unique_suffix_id = gen_unique_metrix_name(bench_metrics, values[1], unique_suffix_id)
                 bench_metrics[mname] = float(values[0])
     
-    if(warmup_rep > 0):
-        for key in bench_metrics:
-            bench_metrics[key] = (bench_metrics[key] - warmup_metrics[key]) / (bench_rep - warmup_rep)
-    else:
-        for key in bench_metrics:
-            bench_metrics[key] = (bench_metrics[key]) / (bench_rep)
-        
+    for key in bench_metrics:
+        bench_metrics[key] = (bench_metrics[key]) / (bench_rep)
+    
     return bench_metrics
 
 

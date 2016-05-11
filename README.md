@@ -70,8 +70,8 @@ $ ../utility/rbench.py hello_rbenchmark.R
 It will use the default R VM (R-bytecode) and the default meter to benchmark the application. The output of benchmark application will be thrown away (redirect to "/dev/null"), and the timing result will be recorded in "rbench.csv" file.
 
 The default benchmark method has two phases
-- pure warmup: run run() 2 times
-- warmup + benchmark: run run() 2 + 5 times
+- warmup: run run() 2 times
+- benchmark: run run() 5 times
 
 Then the post processing will diff the two phases, and reports the average value for the 5 benchmark iterations.
 
