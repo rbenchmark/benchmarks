@@ -89,6 +89,38 @@ Please refer [Running Benchmark](docs/running_benchmark.md) for additional contr
 And the driver supports many RVMs for benchmarking. Here is the [list](docs/running_benchmark.md#supported-r-vms-for-benchmarking). 
 
 
+## Benchmark accuracy and negative metrics
+
+The default benchmark runs two phases, as described above, with first
+`warmup_rep` iterations, and then `warmup_rep + bench_rep` iterations. Each
+phase is run using a single R invocation.
+
+Let `warmup_metrics` be the metrics
+gathered for the warmup phase, and `bench_metrics` be the metrics gathered for
+the benchmark phase, the result of the benchmark is computed as `(bench_metrics
+- warmup_metrics) / bench_rep`.  The purpose is to isolate the metrics for the
+`bench_rep` iterations, however there is a variance in running characteristics
+for each phase, and the first iterations will not always run the same way and
+generate the same metrics.  Thus, you may see negative metrics in the results
+for short-running benchmarks where the variance has a larger impact.
+
+There are some ways you can reduce the variance in the recorded metrics:
+
+*  Increase the number of warmup and benchmark iterations by adjusting the
+   `warmup_rep` and `bench_rep` options.
+*  Set `warmup_rep` to zero. This removes the inaccuracy caused by variance.
+   The variance in running time will still affect the benchmark results, but
+removing the warmup runs should remove any negative metrics.
+
+The reason warmup runs may be desired is that there are some warmup transients
+that happen in R implementations. This can be the loading of the R executable and
+shared libraries, initialization of the VM, JIT optimizations, cache behaviour etc.
+
+The benchmark harness does not in any way separate the warmup runs from the
+benchmark runs, it just runs X number of runs. Finer grained measurements would be
+required to collect more accurate benchmarking statistics without relying on a
+separate warmup phase.
+
 ## Writing your own benchmark R program
 
 A benchmark R program should have a mandatory run() function. The driver will call run() function in the benchmarking.
