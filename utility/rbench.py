@@ -124,12 +124,12 @@ def run_bench(config, rvm, meter, warmup_rep, bench_rep, source, rargs, bench_lo
         warmup_cmd = [perf_cmd, rcmd, rcmd_args, harness, harness_args,
                       use_system_time, str(warmup_rep), source, rargs]
         bench_cmd = [perf_cmd, rcmd, rcmd_args, harness, harness_args,
-                     use_system_time, str(warmup_rep+bench_rep), source, rargs]
+                     use_system_time, str(bench_rep), source, rargs]
     else: #default python
         warmup_cmd = [rcmd, rcmd_args, harness, harness_args,
                       use_system_time, str(warmup_rep), source, rargs]
         bench_cmd = [rcmd, rcmd_args, harness, harness_args,
-                     use_system_time, str(warmup_rep+bench_rep), source, rargs]
+                     use_system_time, str(bench_rep), source, rargs]
 
     # Create the environment dictionary for the subprocess module.
     env = os.environ.copy()
@@ -141,7 +141,7 @@ def run_bench(config, rvm, meter, warmup_rep, bench_rep, source, rargs, bench_lo
         with open(perf_tmp, 'w') as f:
             f.write('WARMUP_TIMES:'+str(warmup_rep)+'\n')
     if warmup_rep > 0:
-        print '[rbench]%s %s - Pure warmup run() %d times' % (source, rargs, warmup_rep)
+        print '[rbench]%s %s - Warmup run() %d times' % (source, rargs, warmup_rep)
         print warmup_cmd
         if bench_log != sys.stdout:
             print >>bench_log, warmup_cmd  # Also log the command
@@ -178,8 +178,8 @@ def run_bench(config, rvm, meter, warmup_rep, bench_rep, source, rargs, bench_lo
     #start benchmark
     if meter == 'perf':
         with open(perf_tmp, 'a') as f:
-            f.write('BENCH_TIMES:' + str(warmup_rep+bench_rep)+'\n')
-    print '[rbench]%s %s - Warmup + Bench run() %d times' % (source, rargs, warmup_rep+bench_rep)
+            f.write('BENCH_TIMES:' + str(bench_rep)+'\n')
+    print '[rbench]%s %s - Bench run() %d times' % (source, rargs, bench_rep)
     print bench_cmd
     if bench_log != sys.stdout:
         print >>bench_log, bench_cmd  # Also log the command
@@ -214,15 +214,14 @@ def run_bench(config, rvm, meter, warmup_rep, bench_rep, source, rargs, bench_lo
         lines = [line.strip() for line in open(perf_tmp)]
         metrics = process_perf_lines(lines)
         #os.remove(perf_tmp)
-        metrics['time'] = (bench_t - warmup_t) * 1000 / bench_rep
     elif meter == 'time':
         metrics = {}
-        metrics['time'] = (bench_t - warmup_t) * 1000 / bench_rep
+        metrics['time'] = bench_t * 1000 / bench_rep
     else: #system.time
         metrics = {}
-        metrics['user'] = (bench_rtimes[0] - warmup_rtimes[0]) * 1000 / bench_rep
-        metrics['system'] = (bench_rtimes[1] - warmup_rtimes[1]) * 1000 / bench_rep
-        metrics['elapsed'] = (bench_rtimes[2] - warmup_rtimes[2]) * 1000 / bench_rep
+        metrics['user'] = bench_rtimes[0] * 1000 / bench_rep
+        metrics['system'] = bench_rtimes[1] * 1000 / bench_rep
+        metrics['elapsed'] = bench_rtimes[2] * 1000 / bench_rep
     if bench_exit_code != 0: #wrong result
         for key in metrics.keys():
             metrics[key] = float('nan')
