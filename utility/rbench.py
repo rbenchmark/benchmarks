@@ -19,15 +19,19 @@ from perfreport import *
 from hardwarereport import *
 from time import strftime
 
-def parse_cfg(utility_dir):
+def parse_cfg(utility_dir, filename='rbench.cfg'):
+    return parse_cfg_file(utility_dir, utility_dir + '/rbench.cfg')
+
+def parse_cfg_file(utility_dir, filename):
     config = ConfigParser.ConfigParser()
-    config.read(utility_dir+'/rbench.cfg')
+    config.read(filename)
     rvms = []
     for rvm in config.sections():
         if (rvm != 'GENERAL'):
             rvms.append(rvm)
 
-    #then change the harness file's location here
+    # Change the harness file's location here.
+    # Set absolute R command paths.
     for rvm in rvms:
         rhome = config.get(rvm, 'HOME')
         if platform.system() == 'Windows':
@@ -53,7 +57,7 @@ def parse_args(rvms, warmup_rep, bench_rep):
                          time: only measure the time in ms (Outside R process);
                          perf: Linux perf, only available on Linux platform;
                          system.time: measure the time use R system.time() (Inside R process)''')
-    parser.add_argument('--rvm', choices=rvms, default=rvms[0],
+    parser.add_argument('--rvm', default=rvms[0],
                         help='R VM used for the benchmark. Defined in rbench.cfg. Default is '+rvms[0])
     parser.add_argument('--warmup_rep', default=warmup_rep, type=int,
                         help='The number of repetition to execute run() in warmup. Default is %d' % warmup_rep)
@@ -61,6 +65,7 @@ def parse_args(rvms, warmup_rep, bench_rep):
                         help='The number of repetition to execute run() in benchmark. Default is %d' % bench_rep)
     parser.add_argument('--timingfile', default='rbench.csv',
                         help='File to log the timing data in CSV format.  Default is rbench.csv')
+    parser.add_argument('--config', help='Loads a custom config file.')
     parser.add_argument('source', nargs=1,
                         help='R source file for the benchmark or a directory containing the benchmark files or a .list file containing a list of R benchmark files')
     parser.add_argument('args', nargs='*',
@@ -270,6 +275,11 @@ def main():
     utility_dir = os.path.dirname(os.path.realpath(__file__))
     config, rvms, warmup_rep, bench_rep = parse_cfg(utility_dir)
     args, benchmarks = parse_args(rvms, warmup_rep, bench_rep)
+    if args.config:
+        config, rvms, warmup_rep, bench_rep = parse_cfg_file(utility_dir, args.config)
+    if not args.rvm in rvms:
+        print '''[rbench]ERROR: Unknown RVM '%s'. Please choose one of %s''' % (args.rvm, rvms)
+        sys.exit(1)
     metrics_array = [None]*len(benchmarks)
     runspec = [None]*len(benchmarks)
     expt_env = OrderedDict()
