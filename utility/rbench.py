@@ -54,7 +54,7 @@ def parse_args(rvms, warmup_rep, bench_rep):
                          perf: Linux perf, only available on Linux platform;
                          system.time: measure the time use R system.time() (Inside R process)''')
     parser.add_argument('--rvm', choices=rvms, default=rvms[0],
-                        help='R VM used for the benchmark. Defined in rbench.cfg. Default is '+rvms[1])
+                        help='R VM used for the benchmark. Defined in rbench.cfg. Default is '+rvms[0])
     parser.add_argument('--warmup_rep', default=warmup_rep, type=int,
                         help='The number of repetition to execute run() in warmup. Default is %d' % warmup_rep)
     parser.add_argument('--bench_rep', default=bench_rep, type=int,
