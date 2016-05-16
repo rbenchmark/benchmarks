@@ -19,15 +19,19 @@ from perfreport import *
 from hardwarereport import *
 from time import strftime
 
-def parse_cfg(utility_dir):
+def parse_cfg(utility_dir, filename='rbench.cfg'):
+    return parse_cfg_file(utility_dir, utility_dir + '/rbench.cfg')
+
+def parse_cfg_file(utility_dir, filename):
     config = ConfigParser.ConfigParser()
-    config.read(utility_dir+'/rbench.cfg')
+    config.read(filename)
     rvms = []
     for rvm in config.sections():
         if (rvm != 'GENERAL'):
             rvms.append(rvm)
 
-    #then change the harness file's location here
+    # Change the harness file's location here.
+    # Set absolute R command paths.
     for rvm in rvms:
         rhome = config.get(rvm, 'HOME')
         if platform.system() == 'Windows':
@@ -53,14 +57,15 @@ def parse_args(rvms, warmup_rep, bench_rep):
                          time: only measure the time in ms (Outside R process);
                          perf: Linux perf, only available on Linux platform;
                          system.time: measure the time use R system.time() (Inside R process)''')
-    parser.add_argument('--rvm', choices=rvms, default=rvms[0],
-                        help='R VM used for the benchmark. Defined in rbench.cfg. Default is '+rvms[1])
+    parser.add_argument('--rvm', default=rvms[0],
+                        help='R VM used for the benchmark. Defined in rbench.cfg. Default is '+rvms[0])
     parser.add_argument('--warmup_rep', default=warmup_rep, type=int,
                         help='The number of repetition to execute run() in warmup. Default is %d' % warmup_rep)
     parser.add_argument('--bench_rep', default=bench_rep, type=int,
                         help='The number of repetition to execute run() in benchmark. Default is %d' % bench_rep)
     parser.add_argument('--timingfile', default='rbench.csv',
                         help='File to log the timing data in CSV format.  Default is rbench.csv')
+    parser.add_argument('--config', help='Loads a custom config file.')
     parser.add_argument('source', nargs=1,
                         help='R source file for the benchmark or a directory containing the benchmark files or a .list file containing a list of R benchmark files')
     parser.add_argument('args', nargs='*',
@@ -107,7 +112,7 @@ def parse_args(rvms, warmup_rep, bench_rep):
 
 '''Return a dictionary'''
 def run_bench(config, rvm, meter, warmup_rep, bench_rep, source, rargs, bench_log):
-    perf_cmd = config.get('GENERAL', 'PERF_CMD')
+    perf_cmd = config.get('GENERAL', 'PERF_CMD').split()
     perf_tmp = config.get('GENERAL', 'PERF_TMP')
     rcmd = config.get(rvm, 'CMD')
     rcmd_args = config.get(rvm, 'ARGS')
@@ -121,9 +126,9 @@ def run_bench(config, rvm, meter, warmup_rep, bench_rep, source, rargs, bench_lo
         use_system_time = 'FALSE'
 
     if meter == 'perf':
-        warmup_cmd = [perf_cmd, rcmd, rcmd_args, harness, harness_args,
+        warmup_cmd = perf_cmd + [rcmd, rcmd_args, harness, harness_args,
                       use_system_time, str(warmup_rep), source, rargs]
-        bench_cmd = [perf_cmd, rcmd, rcmd_args, harness, harness_args,
+        bench_cmd = perf_cmd + [rcmd, rcmd_args, harness, harness_args,
                      use_system_time, str(warmup_rep+bench_rep), source, rargs]
     else: #default python
         warmup_cmd = [rcmd, rcmd_args, harness, harness_args,
@@ -270,6 +275,11 @@ def main():
     utility_dir = os.path.dirname(os.path.realpath(__file__))
     config, rvms, warmup_rep, bench_rep = parse_cfg(utility_dir)
     args, benchmarks = parse_args(rvms, warmup_rep, bench_rep)
+    if args.config:
+        config, rvms, warmup_rep, bench_rep = parse_cfg_file(utility_dir, args.config)
+    if not args.rvm in rvms:
+        print '''[rbench]ERROR: Unknown RVM '%s'. Please choose one of %s''' % (args.rvm, rvms)
+        sys.exit(1)
     metrics_array = [None]*len(benchmarks)
     runspec = [None]*len(benchmarks)
     expt_env = OrderedDict()
@@ -317,9 +327,6 @@ def main():
         except IOError as e:
           print >>sys.stderr, "I/O error({0}): {1}".format(e.errno, e.strerror)
           print >>sys.stderr, "Some of the benchmark data could not be logged!"
-        except Exception as e:
-            print e;
-            sys.exit(1)
         finally:
             os.chdir(cur_dir)
 
